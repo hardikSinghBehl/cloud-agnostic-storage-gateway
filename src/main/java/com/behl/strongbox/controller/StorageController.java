@@ -37,7 +37,7 @@ public class StorageController {
 	private final PlatformUtility platformUtility;
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-	@Operation(description = "Uploads file to specified storage service")
+	@Operation(summary = "Uploads file to specified storage service")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "201", description = "File saved Successfully to specified storage service"),
 			@ApiResponse(responseCode = "417", description = "Unable to store file to specified storage service"),
