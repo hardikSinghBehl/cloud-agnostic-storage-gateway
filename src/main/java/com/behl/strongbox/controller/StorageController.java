@@ -29,7 +29,7 @@ public class StorageController {
 
 	private final StorageService storageService;
 
-	@PostMapping(value = "/v1", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@Operation(description = "Uploads file to specified storage service")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "201", description = "File saved Successfully to specified storage service"),
@@ -39,7 +39,7 @@ public class StorageController {
 		return ResponseEntity.status(storageService.save(file)).build();
 	}
 
-	@GetMapping(value = "/v1/{keyName}")
+	@GetMapping(value = "/{keyName}")
 	@Operation(description = "Retrieves file from storage service", summary = "Retrieves file corresponding to provided keyName from storage service")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Saved file retrived successfully"),
 			@ApiResponse(responseCode = "404", description = "Unable to retieve file from storage service") })
