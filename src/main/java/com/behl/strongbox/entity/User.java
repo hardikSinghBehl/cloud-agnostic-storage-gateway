@@ -7,6 +7,8 @@ import java.util.UUID;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -14,6 +16,8 @@ import javax.persistence.PrePersist;
 import javax.persistence.Table;
 
 import org.hibernate.annotations.Type;
+
+import com.behl.strongbox.constant.AccountType;
 
 import lombok.Data;
 
@@ -32,6 +36,10 @@ public class User implements Serializable {
 
 	@Column(name = "user_name", nullable = false, unique = true)
 	private String userName;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "account_type", nullable = false)
+	private AccountType accountType;
 
 	@Column(name = "password", nullable = false)
 	private String password;
