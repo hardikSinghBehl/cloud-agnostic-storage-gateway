@@ -22,7 +22,7 @@ public class CloudAgnosticStorageGatewayApplication {
 		var awsConfigurationProperties = applicationContext.getBean(AwsConfigurationProperties.class);
 		var azureConfigurationProperties = applicationContext.getBean(AzureConfigurationProperties.class);
 
-		if (allDisabled(awsConfigurationProperties)) {
+		if (allDisabled(awsConfigurationProperties, azureConfigurationProperties)) {
 			log.error(
 					"Atleast 1 Storage-service provider must be enabled : {} : Go to 'application.properties' file to update configuration",
 					LocalDateTime.now());
@@ -48,8 +48,12 @@ public class CloudAgnosticStorageGatewayApplication {
 		}
 	}
 
-	private static boolean allDisabled(final AwsConfigurationProperties awsConfigurationProperties) {
-		return BooleanUtils.isFalse(awsConfigurationProperties.getEnabled());
+	private static boolean allDisabled(final AwsConfigurationProperties awsConfigurationProperties,
+			final AzureConfigurationProperties azureConfigurationProperties) {
+		return (awsConfigurationProperties.getEnabled() == null
+				|| BooleanUtils.isFalse(awsConfigurationProperties.getEnabled()))
+				&& (azureConfigurationProperties.getEnabled() == null
+						|| BooleanUtils.isFalse(azureConfigurationProperties.getEnabled()));
 	}
 
 	private static void exit() {
