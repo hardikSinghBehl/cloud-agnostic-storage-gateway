@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.behl.strongbox.dto.FileRetrievalDto;
+import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.StorageService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,6 +51,16 @@ public class StorageController {
 		return ResponseEntity.status(HttpStatus.OK)
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileRetrievalDto.getFileName())
 				.body(fileRetrievalDto.getFileContent());
+	}
+
+	@GetMapping(value = "/preview/{keyName}")
+	@Operation(summary = "Generates a Presigned-URL to grant temporary access to object", description = "Generates a Presigned-URL to grant temporary access to object corresponding to provided key, The Presigned-URL is valid for upto 10 minutes after generation")
+	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Presigned-URL generated successfully"),
+			@ApiResponse(responseCode = "417", description = "Unable to generate Presigned-URL") })
+	@ResponseStatus(HttpStatus.OK)
+	public ResponseEntity<PresignedUrlResponseDto> generatePresignedUrl(
+			@PathVariable(required = true, name = "keyName") final String keyName) {
+		return ResponseEntity.ok(storageService.generatePresignedUrl(keyName));
 	}
 
 }

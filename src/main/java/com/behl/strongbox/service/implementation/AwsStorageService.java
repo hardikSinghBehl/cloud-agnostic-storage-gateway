@@ -1,7 +1,11 @@
 package com.behl.strongbox.service.implementation;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -10,14 +14,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.amazonaws.HttpMethod;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.behl.strongbox.configuration.properties.AwsConfigurationProperties;
 import com.behl.strongbox.dto.FileRetrievalDto;
+import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.StorageService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -74,6 +81,35 @@ public class AwsStorageService implements StorageService {
 
 		return FileRetrievalDto.builder().fileContent(new InputStreamResource(s3Object.getObjectContent()))
 				.fileName(s3Object.getKey()).build();
+	}
+
+	/**
+	 * Generates a Presigned URL to enable access to preview object corresponding to
+	 * provided key for 10 minutes
+	 * 
+	 * @param keyName: object key corresponding to which Pre-signed URL is to be
+	 *                 generated
+	 * @return java.net.URI containing the presigned-URL for the specified object
+	 */
+	@Override
+	public PresignedUrlResponseDto generatePresignedUrl(final String keyName) {
+		final var s3Properties = awsConfigurationProperties.getS3();
+		final var validUntilTimestamp = LocalDateTime.now().plusMinutes(10);
+
+		GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(
+				s3Properties.getBucketName(), keyName, HttpMethod.GET);
+		generatePresignedUrlRequest.setExpiration(Date.from(validUntilTimestamp.toInstant(ZoneOffset.UTC)));
+
+		try {
+			final URL presignedUrl = amazonS3.generatePresignedUrl(generatePresignedUrlRequest);
+			return PresignedUrlResponseDto.builder().url(presignedUrl.toURI().toString())
+					.validUntil(validUntilTimestamp).build();
+		} catch (final SdkClientException | URISyntaxException exception) {
+			log.error("EXCEPTION OCCURRED WHILE GENERATING PRE-SIGNED URL FOR '{}' IN S3 BUCKET {} : {}", keyName,
+					s3Properties.getBucketName(), LocalDateTime.now(), exception);
+			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "UNABLE TO GENERATE PRE-SIGNED URL",
+					exception);
+		}
 	}
 
 	private ObjectMetadata constructMetadata(final MultipartFile file) {
