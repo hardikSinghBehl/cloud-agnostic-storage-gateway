@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.behl.strongbox.annotation.CheckIfAuthorizedUser;
 import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
@@ -23,6 +24,7 @@ import com.behl.strongbox.service.implementation.AzureStorageService;
 import com.behl.strongbox.utility.PlatformUtility;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +38,7 @@ public class StorageController {
 	private final AzureStorageService azureStorageService;
 	private final PlatformUtility platformUtility;
 
+	@CheckIfAuthorizedUser
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@Operation(summary = "Uploads file to specified storage service")
 	@ApiResponses(value = {
@@ -44,13 +47,15 @@ public class StorageController {
 			@ApiResponse(responseCode = "412", description = "Selected Platform is not enabled or not configured") })
 	@ResponseStatus(value = HttpStatus.CREATED)
 	public ResponseEntity<HttpStatus> save(@RequestPart(name = "file", required = true) final MultipartFile file,
-			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform) {
+			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform,
+			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
 		platformUtility.validateIfEnabled(platform);
 		final var response = Platform.AWS.equals(platform) ? awsStorageService.save(file)
 				: azureStorageService.save(file);
 		return ResponseEntity.status(response).build();
 	}
 
+	@CheckIfAuthorizedUser
 	@GetMapping(value = "/{keyName}")
 	@Operation(description = "Retrieves file from storage service", summary = "Retrieves file corresponding to provided keyName from storage service")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Saved file retrived successfully"),
@@ -59,7 +64,8 @@ public class StorageController {
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResponseEntity<InputStreamResource> retrieve(
 			@PathVariable(name = "keyName", required = true) final String keyName,
-			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform) {
+			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform,
+			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
 		platformUtility.validateIfEnabled(platform);
 		final FileRetrievalDto fileRetrievalDto = Platform.AWS.equals(platform) ? awsStorageService.retrieve(keyName)
 				: azureStorageService.retrieve(keyName);
@@ -74,7 +80,8 @@ public class StorageController {
 			@ApiResponse(responseCode = "417", description = "Unable to generate Presigned-URL") })
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<PresignedUrlResponseDto> generatePresignedUrl(
-			@PathVariable(required = true, name = "keyName") final String keyName) {
+			@PathVariable(required = true, name = "keyName") final String keyName,
+			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
 		return ResponseEntity.ok(awsStorageService.generatePresignedUrl(keyName));
 	}
 
