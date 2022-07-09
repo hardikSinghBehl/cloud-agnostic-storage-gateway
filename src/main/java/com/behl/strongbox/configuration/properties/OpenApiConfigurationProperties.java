@@ -5,7 +5,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import lombok.Data;
 
 @Data
-@ConfigurationProperties(prefix = "com.behl.cerberus")
+@ConfigurationProperties(prefix = "com.behl.strongbox")
 public class OpenApiConfigurationProperties {
 
 	private OpenAPI openApi = new OpenAPI();
