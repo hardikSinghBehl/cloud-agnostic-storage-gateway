@@ -19,8 +19,7 @@ import com.behl.strongbox.annotation.CheckIfAuthorizedUser;
 import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
-import com.behl.strongbox.service.implementation.AwsStorageService;
-import com.behl.strongbox.service.implementation.AzureStorageService;
+import com.behl.strongbox.service.StorageService;
 import com.behl.strongbox.utility.PlatformUtility;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,8 +33,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StorageController {
 
-	private final AwsStorageService awsStorageService;
-	private final AzureStorageService azureStorageService;
+	private final StorageService storageService;
 	private final PlatformUtility platformUtility;
 
 	@CheckIfAuthorizedUser
@@ -50,9 +48,7 @@ public class StorageController {
 			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform,
 			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
 		platformUtility.validateIfEnabled(platform);
-		final var response = Platform.AWS.equals(platform) ? awsStorageService.save(file)
-				: azureStorageService.save(file);
-		return ResponseEntity.status(response).build();
+		return ResponseEntity.status(storageService.save(platform, file)).build();
 	}
 
 	@CheckIfAuthorizedUser
@@ -67,8 +63,7 @@ public class StorageController {
 			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform,
 			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
 		platformUtility.validateIfEnabled(platform);
-		final FileRetrievalDto fileRetrievalDto = Platform.AWS.equals(platform) ? awsStorageService.retrieve(keyName)
-				: azureStorageService.retrieve(keyName);
+		final FileRetrievalDto fileRetrievalDto = storageService.retrieve(platform, keyName);
 		return ResponseEntity.status(HttpStatus.OK)
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileRetrievalDto.getFileName())
 				.body(fileRetrievalDto.getFileContent());
@@ -82,7 +77,7 @@ public class StorageController {
 	public ResponseEntity<PresignedUrlResponseDto> generatePresignedUrl(
 			@PathVariable(required = true, name = "keyName") final String keyName,
 			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
-		return ResponseEntity.ok(awsStorageService.generatePresignedUrl(keyName));
+		return ResponseEntity.ok(storageService.generatePresignedUrl(Platform.AWS, keyName));
 	}
 
 }

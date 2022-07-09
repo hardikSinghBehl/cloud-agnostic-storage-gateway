@@ -24,14 +24,13 @@ import com.amazonaws.services.s3.model.S3Object;
 import com.behl.strongbox.configuration.properties.AwsConfigurationProperties;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
-import com.behl.strongbox.service.StorageService;
 import com.behl.strongbox.utility.S3Utility;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class AwsStorageService implements StorageService {
+public class AwsStorageService {
 
 	@Autowired(required = false)
 	private AmazonS3 amazonS3;
@@ -43,7 +42,6 @@ public class AwsStorageService implements StorageService {
 	 * @param file: represents an object to be saved in configured S3 Bucket
 	 * @return HttpStatus 200 OK if file was saved.
 	 */
-	@Override
 	public HttpStatus save(final MultipartFile file) {
 		final var metadata = S3Utility.constructMetadata(file);
 		final var s3Properties = awsConfigurationProperties.getS3();
@@ -66,7 +64,6 @@ public class AwsStorageService implements StorageService {
 	 * 
 	 * @return com.behl.strongbox.dto.FileRetrievalDto.class
 	 */
-	@Override
 	public FileRetrievalDto retrieve(final String keyName) {
 		final String bucketName = awsConfigurationProperties.getS3().getBucketName();
 		final var getObjectRequest = new GetObjectRequest(bucketName, keyName);
@@ -80,7 +77,7 @@ public class AwsStorageService implements StorageService {
 		}
 
 		return FileRetrievalDto.builder().fileContent(new InputStreamResource(s3Object.getObjectContent()))
-				.fileName(s3Object.getKey()).build();
+				.fileName(s3Object.getObjectMetadata().getContentDisposition()).build();
 	}
 
 	/**
@@ -92,7 +89,6 @@ public class AwsStorageService implements StorageService {
 	 * @return PresignedUrlResponseDto.class containing the presigned-URL for the
 	 *         specified object and the valid until timestamp
 	 */
-	@Override
 	public PresignedUrlResponseDto generatePresignedUrl(final String keyName) {
 		final var s3Properties = awsConfigurationProperties.getS3();
 		final var validUntilTimestamp = LocalDateTime.now().plusMinutes(10);
