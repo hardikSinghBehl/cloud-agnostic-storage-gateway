@@ -40,7 +40,8 @@ public class StorageController {
 	@Operation(description = "Uploads file to specified storage service")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "201", description = "File saved Successfully to specified storage service"),
-			@ApiResponse(responseCode = "417", description = "Unable to store file to specified storage service") })
+			@ApiResponse(responseCode = "417", description = "Unable to store file to specified storage service"),
+			@ApiResponse(responseCode = "412", description = "Selected Platform is not enabled or not configured") })
 	@ResponseStatus(value = HttpStatus.CREATED)
 	public ResponseEntity<HttpStatus> save(@RequestPart(name = "file", required = true) final MultipartFile file,
 			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform) {
@@ -53,7 +54,8 @@ public class StorageController {
 	@GetMapping(value = "/{keyName}")
 	@Operation(description = "Retrieves file from storage service", summary = "Retrieves file corresponding to provided keyName from storage service")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Saved file retrived successfully"),
-			@ApiResponse(responseCode = "404", description = "Unable to retieve file from storage service") })
+			@ApiResponse(responseCode = "404", description = "Unable to retieve file from storage service"),
+			@ApiResponse(responseCode = "412", description = "Selected Platform is not enabled or not configured") })
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResponseEntity<InputStreamResource> retrieve(
 			@PathVariable(name = "keyName", required = true) final String keyName,
