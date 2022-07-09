@@ -15,6 +15,7 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import com.behl.strongbox.configuration.properties.AwsConfigurationProperties;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.service.StorageService;
@@ -46,10 +47,8 @@ public class AwsStorageService implements StorageService {
 		} catch (final SdkClientException | IOException exception) {
 			log.error("UNABLE TO STORE {} IN S3 BUCKET {} : {} ", file.getOriginalFilename(),
 					s3Properties.getBucketName(), LocalDateTime.now(), exception);
-			throw new ResponseStatusException(
-					HttpStatus.EXPECTATION_FAILED, "UNABLE TO STORE FILE " + file.getOriginalFilename()
-							+ " IN S3 BUCKET '" + s3Properties.getBucketName() + "' : " + LocalDateTime.now(),
-					exception);
+			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
+					"UNABLE TO STORE FILE TO CONFIGURED S3 BUCKET", exception);
 		}
 		return HttpStatus.CREATED;
 	}
@@ -64,7 +63,14 @@ public class AwsStorageService implements StorageService {
 	public FileRetrievalDto retrieve(final String keyName) {
 		final String bucketName = awsConfigurationProperties.getS3().getBucketName();
 		final var getObjectRequest = new GetObjectRequest(bucketName, keyName);
-		final var s3Object = amazonS3.getObject(getObjectRequest);
+		S3Object s3Object;
+		try {
+			s3Object = amazonS3.getObject(getObjectRequest);
+		} catch (final SdkClientException exception) {
+			log.error("UNABLE TO RETIEVE FILE WITH KEY '{}' FROM S3 BUCKET '{}' : {}", keyName, bucketName,
+					LocalDateTime.now(), exception);
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "UNABLE TO RETRIEVE FILE", exception);
+		}
 
 		return FileRetrievalDto.builder().fileContent(new InputStreamResource(s3Object.getObjectContent()))
 				.fileName(s3Object.getKey()).build();
