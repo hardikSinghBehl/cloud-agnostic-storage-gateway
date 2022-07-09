@@ -13,7 +13,7 @@
 
 	<groupId>com.behl</groupId>
 	<artifactId>cloud-agnostic-storage-gateway</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>1.0.0.RELEASE</version>
 	<name>cloud-agnostic-storage-gateway</name>
 	<description>Spring-boot application exposing APIs to act as a gateway which integrates cloud based storage solution(s) and performs basic CRUD operations</description>
 
