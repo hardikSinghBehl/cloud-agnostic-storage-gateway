@@ -8,15 +8,18 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
-import com.behl.strongbox.service.StorageService;
+import com.behl.strongbox.service.implementation.AwsStorageService;
+import com.behl.strongbox.utility.PlatformUtility;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -28,7 +31,8 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StorageController {
 
-	private final StorageService storageService;
+	private final AwsStorageService awsStorageService;
+	private final PlatformUtility platformUtility;
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@Operation(description = "Uploads file to specified storage service")
@@ -36,8 +40,10 @@ public class StorageController {
 			@ApiResponse(responseCode = "201", description = "File saved Successfully to specified storage service"),
 			@ApiResponse(responseCode = "417", description = "Unable to store file to specified storage service") })
 	@ResponseStatus(value = HttpStatus.CREATED)
-	public ResponseEntity<HttpStatus> save(@RequestPart(name = "file", required = true) final MultipartFile file) {
-		return ResponseEntity.status(storageService.save(file)).build();
+	public ResponseEntity<HttpStatus> save(@RequestPart(name = "file", required = true) final MultipartFile file,
+			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform) {
+		platformUtility.validateIfEnabled(platform);
+		return ResponseEntity.status(awsStorageService.save(file)).build();
 	}
 
 	@GetMapping(value = "/{keyName}")
@@ -46,8 +52,10 @@ public class StorageController {
 			@ApiResponse(responseCode = "404", description = "Unable to retieve file from storage service") })
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResponseEntity<InputStreamResource> retrieve(
-			@PathVariable(name = "keyName", required = true) final String keyName) {
-		final FileRetrievalDto fileRetrievalDto = storageService.retrieve(keyName);
+			@PathVariable(name = "keyName", required = true) final String keyName,
+			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform) {
+		platformUtility.validateIfEnabled(platform);
+		final FileRetrievalDto fileRetrievalDto = awsStorageService.retrieve(keyName);
 		return ResponseEntity.status(HttpStatus.OK)
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileRetrievalDto.getFileName())
 				.body(fileRetrievalDto.getFileContent());
@@ -60,7 +68,7 @@ public class StorageController {
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<PresignedUrlResponseDto> generatePresignedUrl(
 			@PathVariable(required = true, name = "keyName") final String keyName) {
-		return ResponseEntity.ok(storageService.generatePresignedUrl(keyName));
+		return ResponseEntity.ok(awsStorageService.generatePresignedUrl(keyName));
 	}
 
 }
