@@ -19,13 +19,13 @@ import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.behl.strongbox.configuration.properties.AwsConfigurationProperties;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.StorageService;
+import com.behl.strongbox.utility.S3Utility;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -45,7 +45,7 @@ public class AwsStorageService implements StorageService {
 	 */
 	@Override
 	public HttpStatus save(final MultipartFile file) {
-		final var metadata = constructMetadata(file);
+		final var metadata = S3Utility.constructMetadata(file);
 		final var s3Properties = awsConfigurationProperties.getS3();
 		try {
 			final var putObjectRequest = new PutObjectRequest(s3Properties.getBucketName(), file.getOriginalFilename(),
@@ -89,7 +89,8 @@ public class AwsStorageService implements StorageService {
 	 * 
 	 * @param keyName: object key corresponding to which Pre-signed URL is to be
 	 *                 generated
-	 * @return java.net.URI containing the presigned-URL for the specified object
+	 * @return PresignedUrlResponseDto.class containing the presigned-URL for the
+	 *         specified object and the valid until timestamp
 	 */
 	@Override
 	public PresignedUrlResponseDto generatePresignedUrl(final String keyName) {
@@ -110,14 +111,6 @@ public class AwsStorageService implements StorageService {
 			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "UNABLE TO GENERATE PRE-SIGNED URL",
 					exception);
 		}
-	}
-
-	private ObjectMetadata constructMetadata(final MultipartFile file) {
-		ObjectMetadata metadata = new ObjectMetadata();
-		metadata.setContentLength(file.getSize());
-		metadata.setContentType(file.getContentType());
-		metadata.setContentDisposition(file.getOriginalFilename());
-		return metadata;
 	}
 
 }
