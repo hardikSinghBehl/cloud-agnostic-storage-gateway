@@ -3,16 +3,19 @@ package com.behl.strongbox.configuration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
+import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.util.StringUtils;
 import com.behl.strongbox.configuration.properties.AwsConfigurationProperties;
+import com.behl.strongbox.configuration.properties.S3NinjaConfigurationProperties;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,12 +23,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Configuration
 @AllArgsConstructor
-@EnableConfigurationProperties(value = AwsConfigurationProperties.class)
+@EnableConfigurationProperties(value = { AwsConfigurationProperties.class, S3NinjaConfigurationProperties.class })
 public class AwsS3Configuration {
 
 	private final AwsConfigurationProperties awsConfigurationProperties;
+	private final S3NinjaConfigurationProperties s3NinjaConfigurationProperties;
 
-	@Bean
+	@Bean("amazonS3")
+	@Primary
 	public AmazonS3 amazonS3() {
 		if (Boolean.TRUE.equals(awsConfigurationProperties.getEnabled())) {
 			if (!StringUtils.isNullOrEmpty(awsConfigurationProperties.getAccessKey())
@@ -43,6 +48,21 @@ public class AwsS3Configuration {
 			}
 		}
 		return null;
+	}
+
+	@Bean("emulatedAmazonS3")
+	public AmazonS3 emulatedAmazonS3() {
+		if (Boolean.TRUE.equals(s3NinjaConfigurationProperties.getEnabled())) {
+			var endpointConfiguration = new AwsClientBuilder.EndpointConfiguration(
+					s3NinjaConfigurationProperties.getS3().getEndpoint(), Regions.AP_SOUTH_1.getName());
+			var awsCredentials = new BasicAWSCredentials(s3NinjaConfigurationProperties.getAccessKey(),
+					s3NinjaConfigurationProperties.getSecretAccessKey());
+			return AmazonS3ClientBuilder.standard().withEndpointConfiguration(endpointConfiguration)
+					.withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).withPathStyleAccessEnabled(true)
+					.build();
+		}
+		return null;
+
 	}
 
 	private void validateRegion(final String region) {
