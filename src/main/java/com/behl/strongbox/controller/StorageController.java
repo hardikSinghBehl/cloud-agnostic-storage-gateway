@@ -19,6 +19,7 @@ import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.implementation.AwsStorageService;
+import com.behl.strongbox.service.implementation.AzureStorageService;
 import com.behl.strongbox.utility.PlatformUtility;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,6 +33,7 @@ import lombok.RequiredArgsConstructor;
 public class StorageController {
 
 	private final AwsStorageService awsStorageService;
+	private final AzureStorageService azureStorageService;
 	private final PlatformUtility platformUtility;
 
 	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -43,7 +45,9 @@ public class StorageController {
 	public ResponseEntity<HttpStatus> save(@RequestPart(name = "file", required = true) final MultipartFile file,
 			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform) {
 		platformUtility.validateIfEnabled(platform);
-		return ResponseEntity.status(awsStorageService.save(file)).build();
+		final var response = Platform.AWS.equals(platform) ? awsStorageService.save(file)
+				: azureStorageService.save(file);
+		return ResponseEntity.status(response).build();
 	}
 
 	@GetMapping(value = "/{keyName}")
@@ -55,7 +59,8 @@ public class StorageController {
 			@PathVariable(name = "keyName", required = true) final String keyName,
 			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform) {
 		platformUtility.validateIfEnabled(platform);
-		final FileRetrievalDto fileRetrievalDto = awsStorageService.retrieve(keyName);
+		final FileRetrievalDto fileRetrievalDto = Platform.AWS.equals(platform) ? awsStorageService.retrieve(keyName)
+				: azureStorageService.retrieve(keyName);
 		return ResponseEntity.status(HttpStatus.OK)
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileRetrievalDto.getFileName())
 				.body(fileRetrievalDto.getFileContent());
