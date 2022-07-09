@@ -6,12 +6,14 @@ import org.springframework.web.multipart.MultipartFile;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
 
+import lombok.NonNull;
+
 public interface StorageService {
 
-	HttpStatus save(MultipartFile file);
+	HttpStatus save(@NonNull MultipartFile file);
 
-	FileRetrievalDto retrieve(String keyName);
+	FileRetrievalDto retrieve(@NonNull String keyName);
 
-	PresignedUrlResponseDto generatePresignedUrl(String keyName);
+	PresignedUrlResponseDto generatePresignedUrl(@NonNull String keyName);
 
 }
