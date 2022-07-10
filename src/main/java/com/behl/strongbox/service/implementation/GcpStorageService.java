@@ -40,7 +40,7 @@ public class GcpStorageService {
 				LocalDateTime.now());
 		try {
 			gcpStorage.create(BlobInfo.newBuilder(bucketName, file.getOriginalFilename()).build(),
-					file.getInputStream().readAllBytes(), Storage.BlobTargetOption.doesNotExist());
+					file.getInputStream().readAllBytes());
 		} catch (final IOException exception) {
 			log.error("Exception occurred during '{}' Upload Attempt to configured GCP Bucket '{}' : {}",
 					file.getOriginalFilename(), bucketName, LocalDateTime.now(), exception);
