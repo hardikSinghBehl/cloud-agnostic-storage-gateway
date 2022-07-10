@@ -52,7 +52,7 @@ public class StorageController {
 	}
 
 	@CheckIfAuthorizedUser
-	@GetMapping(value = "/{keyName}")
+	@GetMapping(value = "/{keyName}", produces = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@Operation(description = "Retrieves file from storage service", summary = "Retrieves file corresponding to provided keyName from storage service")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Saved file retrived successfully"),
 			@ApiResponse(responseCode = "404", description = "Unable to retieve file from storage service"),
