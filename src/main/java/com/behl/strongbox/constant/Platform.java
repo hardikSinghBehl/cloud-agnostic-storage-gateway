@@ -2,6 +2,6 @@ package com.behl.strongbox.constant;
 
 public enum Platform {
 
-	AWS, AZURE, EMULATION;
+	AWS, AZURE, GCP, EMULATION;
 
 }

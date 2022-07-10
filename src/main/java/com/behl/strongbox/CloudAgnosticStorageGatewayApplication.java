@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import com.amazonaws.util.StringUtils;
 import com.behl.strongbox.configuration.properties.AwsConfigurationProperties;
 import com.behl.strongbox.configuration.properties.AzureConfigurationProperties;
+import com.behl.strongbox.configuration.properties.GcpStorageConfigurationProperties;
 import com.behl.strongbox.configuration.properties.S3NinjaConfigurationProperties;
 
 import lombok.extern.slf4j.Slf4j;
@@ -22,9 +23,10 @@ public class CloudAgnosticStorageGatewayApplication {
 
 		var awsConfigurationProperties = applicationContext.getBean(AwsConfigurationProperties.class);
 		var azureConfigurationProperties = applicationContext.getBean(AzureConfigurationProperties.class);
+		var gcpConfigurationProperties = applicationContext.getBean(GcpStorageConfigurationProperties.class);
 		var s3NinjaEmulatorConfigurationProperties = applicationContext.getBean(S3NinjaConfigurationProperties.class);
 
-		if (allDisabled(awsConfigurationProperties, azureConfigurationProperties,
+		if (allDisabled(awsConfigurationProperties, azureConfigurationProperties, gcpConfigurationProperties,
 				s3NinjaEmulatorConfigurationProperties)) {
 			log.error(
 					"Atleast 1 Storage-service provider must be enabled : {} : Go to 'application.properties' file to update configuration",
@@ -34,6 +36,7 @@ public class CloudAgnosticStorageGatewayApplication {
 
 		validateConfiguration(awsConfigurationProperties);
 		validateConfiguration(azureConfigurationProperties);
+		validateConfiguration(gcpConfigurationProperties);
 		validateConfiguration(s3NinjaEmulatorConfigurationProperties);
 	}
 
@@ -72,6 +75,19 @@ public class CloudAgnosticStorageGatewayApplication {
 		}
 	}
 
+	private static void validateConfiguration(final GcpStorageConfigurationProperties gcpConfigurationProperties) {
+		if (BooleanUtils.isTrue(gcpConfigurationProperties.getEnabled())) {
+			if (StringUtils.isNullOrEmpty(gcpConfigurationProperties.getBucketName())
+					|| StringUtils.isNullOrEmpty(gcpConfigurationProperties.getAuthenticationKeyPath())
+					|| StringUtils.isNullOrEmpty(gcpConfigurationProperties.getProjectId())) {
+				log.error(
+						"All configuration values must be present for GCP Storage under 'com.behl.strongbox.gcp.*' in application.properties file. Refer {}",
+						GcpStorageConfigurationProperties.class.getName());
+				exit();
+			}
+		}
+	}
+
 	private static void validateConfiguration(final S3NinjaConfigurationProperties configuration) {
 		if (BooleanUtils.isTrue(configuration.getEnabled())) {
 			if (StringUtils.isNullOrEmpty(configuration.getAccessKey())
@@ -88,11 +104,14 @@ public class CloudAgnosticStorageGatewayApplication {
 
 	private static boolean allDisabled(final AwsConfigurationProperties awsConfigurationProperties,
 			final AzureConfigurationProperties azureConfigurationProperties,
+			final GcpStorageConfigurationProperties gcpStorageConfigurationProperties,
 			final S3NinjaConfigurationProperties s3NinjaConfigurationProperties) {
 		return (awsConfigurationProperties.getEnabled() == null
 				|| BooleanUtils.isFalse(awsConfigurationProperties.getEnabled()))
 				&& (azureConfigurationProperties.getEnabled() == null
 						|| BooleanUtils.isFalse(azureConfigurationProperties.getEnabled()))
+				&& (gcpStorageConfigurationProperties.getEnabled() == null
+						|| BooleanUtils.isFalse(gcpStorageConfigurationProperties.getEnabled()))
 				&& (s3NinjaConfigurationProperties.getEnabled() == null
 						|| BooleanUtils.isFalse(s3NinjaConfigurationProperties.getEnabled()));
 	}

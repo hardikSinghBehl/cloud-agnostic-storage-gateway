@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.behl.strongbox.configuration.properties.AwsConfigurationProperties;
 import com.behl.strongbox.configuration.properties.AzureConfigurationProperties;
+import com.behl.strongbox.configuration.properties.GcpStorageConfigurationProperties;
 import com.behl.strongbox.configuration.properties.S3NinjaConfigurationProperties;
 import com.behl.strongbox.constant.Platform;
 
@@ -23,6 +24,7 @@ public class PlatformUtility {
 
 	private final AwsConfigurationProperties awsConfigurationProperties;
 	private final AzureConfigurationProperties azureConfigurationProperties;
+	private final GcpStorageConfigurationProperties gcpStorageConfigurationProperties;
 	private final S3NinjaConfigurationProperties s3NinjaConfigurationProperties;
 
 	public void validateIfEnabled(@NonNull final Platform platform) {
@@ -40,6 +42,8 @@ public class PlatformUtility {
 			return BooleanUtils.isTrue(awsConfigurationProperties.getEnabled());
 		else if (Platform.AZURE.equals(platform))
 			return BooleanUtils.isTrue(azureConfigurationProperties.getEnabled());
+		else if (Platform.GCP.equals(platform))
+			return BooleanUtils.isTrue(gcpStorageConfigurationProperties.getEnabled());
 		else
 			return BooleanUtils.isTrue(s3NinjaConfigurationProperties.getEnabled());
 	}
