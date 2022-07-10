@@ -33,6 +33,8 @@ public class CloudAgnosticStorageGatewayApplication {
 		}
 
 		validateConfiguration(awsConfigurationProperties);
+		validateConfiguration(azureConfigurationProperties);
+		validateConfiguration(s3NinjaEmulatorConfigurationProperties);
 	}
 
 	private static void validateConfiguration(final AwsConfigurationProperties awsConfigurationProperties) {
@@ -47,6 +49,39 @@ public class CloudAgnosticStorageGatewayApplication {
 					log.error("A valid region must be provided corresponding to configured S3 Bucket");
 					exit();
 				}
+			}
+		}
+	}
+
+	private static void validateConfiguration(final AzureConfigurationProperties azureConfigurationProperties) {
+		if (BooleanUtils.isTrue(azureConfigurationProperties.getEnabled())) {
+			if (StringUtils.isNullOrEmpty(azureConfigurationProperties.getContainer())) {
+				log.error("container name cannot be left empty under property 'com.behl.strongbox.azure.container'");
+				exit();
+			}
+			if (StringUtils.isNullOrEmpty(azureConfigurationProperties.getConnectionString())
+					&& (StringUtils.isNullOrEmpty(azureConfigurationProperties.getSasToken())
+							&& StringUtils.isNullOrEmpty(azureConfigurationProperties.getSasUrl()))
+					|| (StringUtils.isNullOrEmpty(azureConfigurationProperties.getConnectionString())
+							&& (StringUtils.isNullOrEmpty(azureConfigurationProperties.getSasUrl())
+									|| StringUtils.isNullOrEmpty(azureConfigurationProperties.getSasToken())))) {
+				log.error(
+						"Either a connection string or a combination of SAS Token and SAS URL have to be configured to enable connection to configured container");
+				exit();
+			}
+		}
+	}
+
+	private static void validateConfiguration(final S3NinjaConfigurationProperties configuration) {
+		if (BooleanUtils.isTrue(configuration.getEnabled())) {
+			if (StringUtils.isNullOrEmpty(configuration.getAccessKey())
+					|| StringUtils.isNullOrEmpty(configuration.getSecretAccessKey())
+					|| StringUtils.isNullOrEmpty(configuration.getS3().getBucketName())
+					|| StringUtils.isNullOrEmpty(configuration.getS3().getEndpoint())) {
+				log.error(
+						"All configuration values must be present for S3Ninja emulator under 'com.behl.strongbox.aws.emulated.*' in application.properties file. Refer {}",
+						S3NinjaConfigurationProperties.class.getName());
+				exit();
 			}
 		}
 	}

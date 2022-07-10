@@ -14,4 +14,31 @@ public class AzureConfigurationProperties {
 	 */
 	private Boolean enabled;
 
+	/**
+	 * Name of container in Azure Storage account that will be used to store and
+	 * retrieve files
+	 */
+	private String container;
+
+	/**
+	 * Connection String value required to enable connection to configured
+	 * container. Either connection String or a combination of sasToken and sasUrl
+	 * have to be configured to enable connection
+	 */
+	private String connectionString;
+
+	/**
+	 * SAS Token corresponding to configured SAS URL and container. Either a
+	 * combination of sasToken and sasUrl or a connection String have to be
+	 * configured to enable connection
+	 */
+	private String sasToken;
+
+	/**
+	 * SAS URL (Endpoint) corresponding to configured SAS Token and container.
+	 * Either a combination of sasToken and sasUrl or a connection String have to be
+	 * configured to enable connection
+	 */
+	private String sasUrl;
+
 }
