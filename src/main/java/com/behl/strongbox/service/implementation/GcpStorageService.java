@@ -47,7 +47,7 @@ public class GcpStorageService {
 			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
 					"UNABLE TO STORE FILE TO CONFIGURED GCP BUCKET", exception);
 		}
-		return HttpStatus.OK;
+		return HttpStatus.CREATED;
 	}
 
 	public FileRetrievalDto retrieve(@NonNull String keyName) {

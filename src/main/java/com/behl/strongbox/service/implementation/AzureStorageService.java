@@ -34,7 +34,7 @@ public class AzureStorageService {
 			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
 					"UNABLE TO STORE FILE TO CONFIGURED AZURE CONTAINER", exception);
 		}
-		return HttpStatus.OK;
+		return HttpStatus.CREATED;
 	}
 
 	public FileRetrievalDto retrieve(final String keyName) {
