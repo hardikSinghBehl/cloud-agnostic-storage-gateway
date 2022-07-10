@@ -23,6 +23,7 @@ public class StorageServiceImpl implements StorageService {
 
 	private final AwsStorageService awsStorageService;
 	private final AzureStorageService azureStorageService;
+	private final GcpStorageService gcpStorageService;
 	private final S3EmulatorService emulatorService;
 
 	@Override
@@ -31,6 +32,8 @@ public class StorageServiceImpl implements StorageService {
 			return awsStorageService.save(file);
 		else if (Platform.AZURE.equals(platform))
 			return azureStorageService.save(file);
+		else if (Platform.GCP.equals(platform))
+			return gcpStorageService.save(file);
 		else if (Platform.EMULATION.equals(platform))
 			return emulatorService.save(file);
 		else
@@ -43,6 +46,8 @@ public class StorageServiceImpl implements StorageService {
 			return awsStorageService.retrieve(keyName);
 		else if (Platform.AZURE.equals(platform))
 			return azureStorageService.retrieve(keyName);
+		else if (Platform.GCP.equals(platform))
+			return gcpStorageService.retrieve(keyName);
 		else if (Platform.EMULATION.equals(platform))
 			return emulatorService.retrieve(keyName);
 		else
