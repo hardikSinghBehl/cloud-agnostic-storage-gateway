@@ -23,6 +23,7 @@ import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.StorageService;
+import com.behl.strongbox.utility.JsonUtil;
 import com.behl.strongbox.utility.PlatformUtility;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,9 +51,10 @@ public class StorageController {
 	public ResponseEntity<FileStorageSuccessDto> save(
 			@RequestPart(name = "file", required = true) final MultipartFile file,
 			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform,
+			@RequestPart(name = "customMetadata", required = false) final String customMetadata,
 			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
 		platformUtility.validateIfEnabled(platform);
-		final var fileStorageResponse = storageService.save(platform, file);
+		final var fileStorageResponse = storageService.save(platform, file, JsonUtil.toMap(customMetadata));
 		return ResponseEntity.status(HttpStatus.OK).body(fileStorageResponse);
 	}
 

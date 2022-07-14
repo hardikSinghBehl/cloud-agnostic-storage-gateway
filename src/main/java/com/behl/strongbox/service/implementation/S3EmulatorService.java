@@ -2,6 +2,7 @@ package com.behl.strongbox.service.implementation;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +44,7 @@ public class S3EmulatorService {
 	 * @param file: represents an object to be saved in configured S3 Ninja endpoint
 	 * @return HttpStatus 200 OK if file was saved.
 	 */
-	public FileStorageSuccessDto save(final MultipartFile file) {
+	public FileStorageSuccessDto save(final MultipartFile file, final Map<String, Object> customMetadata) {
 		final var metadata = S3Utility.constructMetadata(file);
 		final var s3Properties = s3NinjaConfigurationProperties.getS3();
 		try {
@@ -56,7 +57,7 @@ public class S3EmulatorService {
 			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
 					"UNABLE TO STORE FILE TO CONFIGURED S3 BUCKET", exception);
 		}
-		final UUID savedFileDetailId = fileDetailService.save(file, Platform.EMULATION,
+		final UUID savedFileDetailId = fileDetailService.save(file, customMetadata, Platform.EMULATION,
 				s3NinjaConfigurationProperties.getS3().getBucketName());
 		return FileStorageSuccessDto.builder().referenceId(savedFileDetailId).build();
 	}

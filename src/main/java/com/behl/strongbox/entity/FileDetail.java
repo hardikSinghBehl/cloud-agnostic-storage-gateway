@@ -2,6 +2,7 @@ package com.behl.strongbox.entity;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.validation.constraints.NotNull;
@@ -11,6 +12,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import com.behl.strongbox.constant.Platform;
+import com.mongodb.lang.Nullable;
 
 import lombok.Data;
 
@@ -43,6 +45,10 @@ public class FileDetail implements Serializable {
 	@NotNull
 	@Field(name = "content_size")
 	private long contentSize;
+
+	@Nullable
+	@Field(name = "custom_metadata")
+	private Map<String, Object> customMetadata;
 
 	@NotNull
 	@Field(name = "created_by")

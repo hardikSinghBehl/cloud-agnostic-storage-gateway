@@ -1,6 +1,7 @@
 package com.behl.strongbox.service.implementation;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
@@ -31,15 +32,16 @@ public class StorageServiceImpl implements StorageService {
 	private final FileDetailService fileDetailService;
 
 	@Override
-	public FileStorageSuccessDto save(@NonNull Platform platform, @NonNull MultipartFile file) {
+	public FileStorageSuccessDto save(@NonNull Platform platform, @NonNull MultipartFile file,
+			final Map<String, Object> customMetadata) {
 		if (Platform.AWS.equals(platform))
-			return awsStorageService.save(file);
+			return awsStorageService.save(file, customMetadata);
 		else if (Platform.AZURE.equals(platform))
-			return azureStorageService.save(file);
+			return azureStorageService.save(file, customMetadata);
 		else if (Platform.GCP.equals(platform))
-			return gcpStorageService.save(file);
+			return gcpStorageService.save(file, customMetadata);
 		else if (Platform.EMULATION.equals(platform))
-			return emulatorService.save(file);
+			return emulatorService.save(file, customMetadata);
 		else
 			throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
