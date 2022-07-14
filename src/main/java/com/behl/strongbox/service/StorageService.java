@@ -15,7 +15,7 @@ public interface StorageService {
 
 	FileStorageSuccessDto save(@NonNull Platform platform, @NonNull MultipartFile file);
 
-	FileRetrievalDto retrieve(@NonNull Platform platform, @NonNull UUID referenceId);
+	FileRetrievalDto retrieve(@NonNull UUID referenceId);
 
 	PresignedUrlResponseDto generatePresignedUrl(@NonNull Platform platform, @NonNull String keyName);
 

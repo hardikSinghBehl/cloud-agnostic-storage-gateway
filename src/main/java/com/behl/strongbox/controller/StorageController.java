@@ -65,10 +65,8 @@ public class StorageController {
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResponseEntity<InputStreamResource> retrieve(
 			@PathVariable(name = "referenceId", required = true) final UUID referenceId,
-			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform,
 			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
-		platformUtility.validateIfEnabled(platform);
-		final FileRetrievalDto fileRetrievalDto = storageService.retrieve(platform, referenceId);
+		final FileRetrievalDto fileRetrievalDto = storageService.retrieve(referenceId);
 		return ResponseEntity.status(HttpStatus.OK)
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileRetrievalDto.getFileName())
 				.body(fileRetrievalDto.getFileContent());

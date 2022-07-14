@@ -12,6 +12,7 @@ import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
+import com.behl.strongbox.service.FileDetailService;
 import com.behl.strongbox.service.StorageService;
 
 import lombok.NonNull;
@@ -27,6 +28,7 @@ public class StorageServiceImpl implements StorageService {
 	private final AzureStorageService azureStorageService;
 	private final GcpStorageService gcpStorageService;
 	private final S3EmulatorService emulatorService;
+	private final FileDetailService fileDetailService;
 
 	@Override
 	public FileStorageSuccessDto save(@NonNull Platform platform, @NonNull MultipartFile file) {
@@ -43,7 +45,9 @@ public class StorageServiceImpl implements StorageService {
 	}
 
 	@Override
-	public FileRetrievalDto retrieve(@NonNull Platform platform, @NonNull UUID referenceId) {
+	public FileRetrievalDto retrieve(@NonNull UUID referenceId) {
+		final var fileDetail = fileDetailService.getById(referenceId);
+		final var platform = fileDetail.getPlatform();
 		if (Platform.AWS.equals(platform))
 			return awsStorageService.retrieve(referenceId);
 		else if (Platform.AZURE.equals(platform))
