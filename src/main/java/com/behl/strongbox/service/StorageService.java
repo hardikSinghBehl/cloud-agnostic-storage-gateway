@@ -17,6 +17,6 @@ public interface StorageService {
 
 	FileRetrievalDto retrieve(@NonNull UUID referenceId);
 
-	PresignedUrlResponseDto generatePresignedUrl(@NonNull Platform platform, @NonNull String keyName);
+	PresignedUrlResponseDto generatePresignedUrl(@NonNull UUID keyName);
 
 }

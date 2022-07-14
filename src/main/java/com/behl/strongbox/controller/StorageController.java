@@ -72,15 +72,15 @@ public class StorageController {
 				.body(fileRetrievalDto.getFileContent());
 	}
 
-	@GetMapping(value = "/preview/{keyName}")
+	@GetMapping(value = "/preview/{referenceId}")
 	@Operation(summary = "Generates a Presigned-URL to grant temporary access to object", description = "Generates a Presigned-URL to grant temporary access to object corresponding to provided key, The Presigned-URL is valid for upto 10 minutes after generation")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Presigned-URL generated successfully"),
 			@ApiResponse(responseCode = "417", description = "Unable to generate Presigned-URL") })
 	@ResponseStatus(HttpStatus.OK)
 	public ResponseEntity<PresignedUrlResponseDto> generatePresignedUrl(
-			@PathVariable(required = true, name = "keyName") final String keyName,
+			@PathVariable(required = true, name = "referenceId") final UUID referenceId,
 			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
-		return ResponseEntity.ok(storageService.generatePresignedUrl(Platform.AWS, keyName));
+		return ResponseEntity.ok(storageService.generatePresignedUrl(referenceId));
 	}
 
 }
