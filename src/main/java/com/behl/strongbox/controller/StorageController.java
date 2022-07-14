@@ -74,6 +74,19 @@ public class StorageController {
 				.body(fileRetrievalDto.getFileContent());
 	}
 
+	@CheckIfAuthorizedUser
+	@GetMapping(value = "/{referenceId}/metadata", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "Retrieves Custom Metadata against referenceId", description = "Retrieves saved custom metadata for file against provided referenceId")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Saved Metadata retrived successfully for given referenceId"),
+			@ApiResponse(responseCode = "404", description = "Invalid ReferenceId provided") })
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResponseEntity<?> retrieveCustomMetaData(
+			@PathVariable(required = true, name = "referenceId") final UUID referenceId,
+			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
+		return ResponseEntity.ok(storageService.retrieveMetaData(referenceId));
+	}
+
 	@GetMapping(value = "/preview/{referenceId}")
 	@Operation(summary = "Generates a Presigned-URL to grant temporary access to object", description = "Generates a Presigned-URL to grant temporary access to object corresponding to provided key, The Presigned-URL is valid for upto 10 minutes after generation")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Presigned-URL generated successfully"),
