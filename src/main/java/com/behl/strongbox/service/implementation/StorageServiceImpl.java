@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
+import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.StorageService;
 
@@ -27,7 +28,7 @@ public class StorageServiceImpl implements StorageService {
 	private final S3EmulatorService emulatorService;
 
 	@Override
-	public HttpStatus save(@NonNull Platform platform, @NonNull MultipartFile file) {
+	public FileStorageSuccessDto save(@NonNull Platform platform, @NonNull MultipartFile file) {
 		if (Platform.AWS.equals(platform))
 			return awsStorageService.save(file);
 		else if (Platform.AZURE.equals(platform))

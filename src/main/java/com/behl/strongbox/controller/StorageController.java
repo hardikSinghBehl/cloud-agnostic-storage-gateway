@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.behl.strongbox.annotation.CheckIfAuthorizedUser;
 import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
+import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.StorageService;
 import com.behl.strongbox.utility.PlatformUtility;
@@ -37,18 +38,20 @@ public class StorageController {
 	private final PlatformUtility platformUtility;
 
 	@CheckIfAuthorizedUser
-	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
 	@Operation(summary = "Uploads file to specified storage service")
 	@ApiResponses(value = {
 			@ApiResponse(responseCode = "201", description = "File saved Successfully to specified storage service"),
 			@ApiResponse(responseCode = "417", description = "Unable to store file to specified storage service"),
 			@ApiResponse(responseCode = "412", description = "Selected Platform is not enabled or not configured") })
 	@ResponseStatus(value = HttpStatus.CREATED)
-	public ResponseEntity<HttpStatus> save(@RequestPart(name = "file", required = true) final MultipartFile file,
+	public ResponseEntity<FileStorageSuccessDto> save(
+			@RequestPart(name = "file", required = true) final MultipartFile file,
 			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform,
 			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
 		platformUtility.validateIfEnabled(platform);
-		return ResponseEntity.status(storageService.save(platform, file)).build();
+		final var fileStorageResponse = storageService.save(platform, file);
+		return ResponseEntity.status(HttpStatus.OK).body(fileStorageResponse);
 	}
 
 	@CheckIfAuthorizedUser

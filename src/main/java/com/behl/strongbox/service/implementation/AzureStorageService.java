@@ -3,6 +3,7 @@ package com.behl.strongbox.service.implementation;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -12,18 +13,27 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.azure.storage.blob.BlobContainerClient;
+import com.behl.strongbox.configuration.properties.AzureConfigurationProperties;
+import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
+import com.behl.strongbox.dto.FileStorageSuccessDto;
+import com.behl.strongbox.service.FileDetailService;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AzureStorageService {
 
 	@Autowired(required = false)
 	private BlobContainerClient blobContainerClient;
 
-	public HttpStatus save(final MultipartFile file) {
+	private final AzureConfigurationProperties azureConfigurationProperties;
+	private final FileDetailService fileDetailService;
+
+	public FileStorageSuccessDto save(final MultipartFile file) {
 		log.info("Uploading '{}' to configured Azure Container : {}", file.getOriginalFilename(), LocalDateTime.now());
 		var blobClient = blobContainerClient.getBlobClient(file.getOriginalFilename());
 		try {
@@ -34,7 +44,9 @@ public class AzureStorageService {
 			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
 					"UNABLE TO STORE FILE TO CONFIGURED AZURE CONTAINER", exception);
 		}
-		return HttpStatus.CREATED;
+		final UUID savedFileDetailId = fileDetailService.save(file, Platform.AZURE,
+				azureConfigurationProperties.getContainer());
+		return FileStorageSuccessDto.builder().referenceId(savedFileDetailId).build();
 	}
 
 	public FileRetrievalDto retrieve(final String keyName) {

@@ -3,6 +3,7 @@ package com.behl.strongbox.service.implementation;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -13,7 +14,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.behl.strongbox.configuration.properties.GcpStorageConfigurationProperties;
+import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
+import com.behl.strongbox.dto.FileStorageSuccessDto;
+import com.behl.strongbox.service.FileDetailService;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
@@ -21,20 +25,22 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 @EnableConfigurationProperties(value = GcpStorageConfigurationProperties.class)
+@RequiredArgsConstructor
 public class GcpStorageService {
 
 	@Autowired(required = false)
 	private Storage gcpStorage;
 
-	@Autowired
-	private GcpStorageConfigurationProperties gcpStorageConfigurationProperties;
+	private final GcpStorageConfigurationProperties gcpStorageConfigurationProperties;
+	private final FileDetailService fileDetailService;
 
-	public HttpStatus save(@NonNull final MultipartFile file) {
+	public FileStorageSuccessDto save(@NonNull final MultipartFile file) {
 		final String bucketName = gcpStorageConfigurationProperties.getBucketName();
 		log.info("Uploading '{}' to configured GCP Bucket '{}' : {}", file.getOriginalFilename(), bucketName,
 				LocalDateTime.now());
@@ -47,7 +53,9 @@ public class GcpStorageService {
 			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
 					"UNABLE TO STORE FILE TO CONFIGURED GCP BUCKET", exception);
 		}
-		return HttpStatus.CREATED;
+		final UUID savedFileDetailId = fileDetailService.save(file, Platform.GCP,
+				gcpStorageConfigurationProperties.getBucketName());
+		return FileStorageSuccessDto.builder().referenceId(savedFileDetailId).build();
 	}
 
 	public FileRetrievalDto retrieve(@NonNull String keyName) {
