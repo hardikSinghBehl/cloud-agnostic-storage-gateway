@@ -1,6 +1,7 @@
 package com.behl.strongbox.service.implementation;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -42,15 +43,15 @@ public class StorageServiceImpl implements StorageService {
 	}
 
 	@Override
-	public FileRetrievalDto retrieve(@NonNull Platform platform, @NonNull String keyName) {
+	public FileRetrievalDto retrieve(@NonNull Platform platform, @NonNull UUID referenceId) {
 		if (Platform.AWS.equals(platform))
-			return awsStorageService.retrieve(keyName);
+			return awsStorageService.retrieve(referenceId);
 		else if (Platform.AZURE.equals(platform))
-			return azureStorageService.retrieve(keyName);
+			return azureStorageService.retrieve(referenceId);
 		else if (Platform.GCP.equals(platform))
-			return gcpStorageService.retrieve(keyName);
+			return gcpStorageService.retrieve(referenceId);
 		else if (Platform.EMULATION.equals(platform))
-			return emulatorService.retrieve(keyName);
+			return emulatorService.retrieve(referenceId);
 		else
 			throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}

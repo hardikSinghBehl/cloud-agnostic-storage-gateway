@@ -1,5 +1,7 @@
 package com.behl.strongbox.service;
 
+import java.util.UUID;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import com.behl.strongbox.constant.Platform;
@@ -13,7 +15,7 @@ public interface StorageService {
 
 	FileStorageSuccessDto save(@NonNull Platform platform, @NonNull MultipartFile file);
 
-	FileRetrievalDto retrieve(@NonNull Platform platform, @NonNull String keyName);
+	FileRetrievalDto retrieve(@NonNull Platform platform, @NonNull UUID referenceId);
 
 	PresignedUrlResponseDto generatePresignedUrl(@NonNull Platform platform, @NonNull String keyName);
 

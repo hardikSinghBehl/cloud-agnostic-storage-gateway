@@ -58,21 +58,22 @@ public class GcpStorageService {
 		return FileStorageSuccessDto.builder().referenceId(savedFileDetailId).build();
 	}
 
-	public FileRetrievalDto retrieve(@NonNull String keyName) {
+	public FileRetrievalDto retrieve(@NonNull UUID referenceId) {
+		final var fileDetail = fileDetailService.getById(referenceId);
 		final String bucketName = gcpStorageConfigurationProperties.getBucketName();
-		log.info("Attempting to Retrieve '{}' from configured GCP Bucket '{}' : {}", keyName, bucketName,
-				LocalDateTime.now());
+		log.info("Attempting to Retrieve '{}' from configured GCP Bucket '{}' : {}", fileDetail.getContentDisposition(),
+				bucketName, LocalDateTime.now());
 		byte[] fileContent;
 		try {
-			Blob blob = gcpStorage.get(BlobId.of(bucketName, keyName));
+			Blob blob = gcpStorage.get(BlobId.of(bucketName, fileDetail.getContentDisposition()));
 			fileContent = blob.getContent(Blob.BlobSourceOption.generationMatch());
 		} catch (final StorageException exception) {
-			log.error("Exception Occurred While Attempting To Retieve '{}' From Configured GCP Bucket {}: {}", keyName,
-					bucketName, LocalDateTime.now(), exception);
+			log.error("Exception Occurred While Attempting To Retieve '{}' From Configured GCP Bucket {}: {}",
+					fileDetail.getContentDisposition(), bucketName, LocalDateTime.now(), exception);
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "UNABLE TO RETRIVE FILE TO CONFIGURED GCP BUCKET",
 					exception);
 		}
-		return FileRetrievalDto.builder().fileName(keyName)
+		return FileRetrievalDto.builder().fileName(fileDetail.getContentDisposition())
 				.fileContent(new InputStreamResource(new ByteArrayInputStream(fileContent))).build();
 	}
 

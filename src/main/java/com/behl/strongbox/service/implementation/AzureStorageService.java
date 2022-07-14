@@ -49,16 +49,17 @@ public class AzureStorageService {
 		return FileStorageSuccessDto.builder().referenceId(savedFileDetailId).build();
 	}
 
-	public FileRetrievalDto retrieve(final String keyName) {
-		log.info("Retrieving '{}' from Azure Container '{}' : {}", keyName, blobContainerClient.getBlobContainerName(),
-				LocalDateTime.now());
-		var blobClient = blobContainerClient.getBlobClient(keyName);
+	public FileRetrievalDto retrieve(final UUID referenceId) {
+		final var fileDetail = fileDetailService.getById(referenceId);
+		log.info("Retrieving '{}' from Azure Container '{}' : {}", fileDetail.getContentDisposition(),
+				blobContainerClient.getBlobContainerName(), LocalDateTime.now());
+		var blobClient = blobContainerClient.getBlobClient(fileDetail.getContentDisposition());
 		var outputStream = new ByteArrayOutputStream();
 		try {
 			blobClient.downloadStream(outputStream);
 		} catch (final Exception exception) {
 		}
-		return FileRetrievalDto.builder().fileName(keyName)
+		return FileRetrievalDto.builder().fileName(fileDetail.getContentDisposition())
 				.fileContent(new InputStreamResource(new ByteArrayInputStream(outputStream.toByteArray()))).build();
 	}
 

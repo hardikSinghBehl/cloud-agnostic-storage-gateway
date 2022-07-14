@@ -4,8 +4,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.entity.FileDetail;
@@ -25,7 +27,8 @@ public class FileDetailServiceImpl implements FileDetailService {
 	private final FileDetailRepository fileDetailRepository;
 
 	@Override
-	public UUID save(@NonNull MultipartFile file, @NonNull final Platform platform, @NonNull final String bucketName) {
+	public UUID save(@NonNull final MultipartFile file, @NonNull final Platform platform,
+			@NonNull final String bucketName) {
 		final var currentTimestamp = LocalDateTime.now(ZoneOffset.UTC);
 		final var fileDetail = new FileDetail();
 		final var loggedInUser = LoggedInUserDetailProvider.getId();
@@ -44,6 +47,12 @@ public class FileDetailServiceImpl implements FileDetailService {
 		log.info("Successfully saved file details for '{}' : action initiated by '{}' : {}", file.getOriginalFilename(),
 				loggedInUser, currentTimestamp);
 		return savedFileDetail.getId();
+	}
+
+	@Override
+	public FileDetail getById(@NonNull final UUID referenceId) {
+		return fileDetailRepository.findById(referenceId)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid referenceId provided"));
 	}
 
 }

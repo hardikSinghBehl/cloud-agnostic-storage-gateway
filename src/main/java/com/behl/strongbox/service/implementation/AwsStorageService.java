@@ -68,19 +68,20 @@ public class AwsStorageService {
 
 	/**
 	 * Retrieves the file from configured S3 Bucket corresponding to provided
-	 * keyName
+	 * referenceId
 	 * 
 	 * @return com.behl.strongbox.dto.FileRetrievalDto.class
 	 */
-	public FileRetrievalDto retrieve(final String keyName) {
+	public FileRetrievalDto retrieve(final UUID referenceId) {
+		final var fileDetail = fileDetailService.getById(referenceId);
 		final String bucketName = awsConfigurationProperties.getS3().getBucketName();
-		final var getObjectRequest = new GetObjectRequest(bucketName, keyName);
+		final var getObjectRequest = new GetObjectRequest(bucketName, fileDetail.getContentDisposition());
 		S3Object s3Object;
 		try {
 			s3Object = amazonS3.getObject(getObjectRequest);
 		} catch (final SdkClientException exception) {
-			log.error("UNABLE TO RETIEVE FILE WITH KEY '{}' FROM S3 BUCKET '{}' : {}", keyName, bucketName,
-					LocalDateTime.now(), exception);
+			log.error("UNABLE TO RETIEVE FILE WITH KEY '{}' FROM S3 BUCKET '{}' : {}",
+					fileDetail.getContentDisposition(), bucketName, LocalDateTime.now(), exception);
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "UNABLE TO RETRIEVE FILE", exception);
 		}
 
