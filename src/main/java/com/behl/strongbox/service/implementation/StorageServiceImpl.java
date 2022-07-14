@@ -61,9 +61,11 @@ public class StorageServiceImpl implements StorageService {
 	}
 
 	@Override
-	public PresignedUrlResponseDto generatePresignedUrl(@NonNull Platform platform, @NonNull String keyName) {
+	public PresignedUrlResponseDto generatePresignedUrl(@NonNull UUID referenceId) {
+		final var fileDetail = fileDetailService.getById(referenceId);
+		final var platform = fileDetail.getPlatform();
 		if (Platform.AWS.equals(platform))
-			return awsStorageService.generatePresignedUrl(keyName);
+			return awsStorageService.generatePresignedUrl(fileDetail.getContentDisposition());
 		log.error("Presigned-URL generation called for unsupported cloud storage provider {} : {}", platform.name(),
 				LocalDateTime.now());
 		throw new ResponseStatusException(HttpStatus.NOT_ACCEPTABLE,
