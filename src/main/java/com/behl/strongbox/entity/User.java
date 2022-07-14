@@ -2,59 +2,46 @@ package com.behl.strongbox.entity;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.util.UUID;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.PrePersist;
-import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 
-import org.hibernate.annotations.Type;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import com.behl.strongbox.constant.AccountType;
 
 import lombok.Data;
 
 @Data
-@Entity
-@Table(name = "users")
+@Document(collection = "users")
 public class User implements Serializable {
 
 	private static final long serialVersionUID = -6482424056597134764L;
 
 	@Id
-	@GeneratedValue(strategy = GenerationType.AUTO)
-	@Type(type = "uuid-char")
-	@Column(name = "id", nullable = false, unique = true)
+	@Field(name = "id")
 	private UUID id;
 
-	@Column(name = "user_name", nullable = false, unique = true)
+	@NotNull
+	@Indexed(unique = true)
+	@Field(name = "user_name")
 	private String userName;
 
-	@Enumerated(EnumType.STRING)
-	@Column(name = "account_type", nullable = false)
+	@NotNull
+	@Field(name = "account_type")
 	private AccountType accountType;
 
-	@Column(name = "password", nullable = false)
+	@NotNull
+	@Field(name = "password")
 	private String password;
 
-	@Column(name = "created_at", nullable = false)
+	@Field(name = "created_at")
 	private LocalDateTime createdAt;
 
-	@Column(name = "updated_at", nullable = false)
+	@Field(name = "updated_at")
 	private LocalDateTime updatedAt;
-
-	@PrePersist
-	void onCreate() {
-		this.id = UUID.randomUUID();
-		this.createdAt = LocalDateTime.now(ZoneOffset.UTC);
-		this.updatedAt = LocalDateTime.now(ZoneOffset.UTC);
-	}
 
 }

@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
 import com.amazonaws.util.StringUtils;
 import com.behl.strongbox.configuration.properties.AwsConfigurationProperties;
@@ -16,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @SpringBootApplication
 @Slf4j
+@EnableMongoRepositories(basePackages = "com.behl.strongbox.repository")
 public class CloudAgnosticStorageGatewayApplication {
 
 	public static void main(String[] args) {
