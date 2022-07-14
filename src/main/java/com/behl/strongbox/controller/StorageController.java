@@ -23,6 +23,7 @@ import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.StorageService;
+import com.behl.strongbox.utility.JsonUtil;
 import com.behl.strongbox.utility.PlatformUtility;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,9 +51,10 @@ public class StorageController {
 	public ResponseEntity<FileStorageSuccessDto> save(
 			@RequestPart(name = "file", required = true) final MultipartFile file,
 			@RequestHeader(name = "X-CLOUD-PLATFORM", required = true) final Platform platform,
+			@RequestPart(name = "customMetadata", required = false) final String customMetadata,
 			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
 		platformUtility.validateIfEnabled(platform);
-		final var fileStorageResponse = storageService.save(platform, file);
+		final var fileStorageResponse = storageService.save(platform, file, JsonUtil.toMap(customMetadata));
 		return ResponseEntity.status(HttpStatus.OK).body(fileStorageResponse);
 	}
 
@@ -70,6 +72,19 @@ public class StorageController {
 		return ResponseEntity.status(HttpStatus.OK)
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileRetrievalDto.getFileName())
 				.body(fileRetrievalDto.getFileContent());
+	}
+
+	@CheckIfAuthorizedUser
+	@GetMapping(value = "/{referenceId}/metadata", produces = MediaType.APPLICATION_JSON_VALUE)
+	@Operation(summary = "Retrieves Custom Metadata against referenceId", description = "Retrieves saved custom metadata for file against provided referenceId")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "Saved Metadata retrived successfully for given referenceId"),
+			@ApiResponse(responseCode = "404", description = "Invalid ReferenceId provided") })
+	@ResponseStatus(value = HttpStatus.OK)
+	public ResponseEntity<?> retrieveCustomMetaData(
+			@PathVariable(required = true, name = "referenceId") final UUID referenceId,
+			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
+		return ResponseEntity.ok(storageService.retrieveMetaData(referenceId));
 	}
 
 	@GetMapping(value = "/preview/{referenceId}")

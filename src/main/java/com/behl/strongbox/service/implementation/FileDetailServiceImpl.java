@@ -2,7 +2,10 @@ package com.behl.strongbox.service.implementation;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.util.Map;
 import java.util.UUID;
+
+import javax.annotation.Nullable;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -27,8 +30,8 @@ public class FileDetailServiceImpl implements FileDetailService {
 	private final FileDetailRepository fileDetailRepository;
 
 	@Override
-	public UUID save(@NonNull final MultipartFile file, @NonNull final Platform platform,
-			@NonNull final String bucketName) {
+	public UUID save(@NonNull final MultipartFile file, @Nullable Map<String, Object> customMetadata,
+			@NonNull final Platform platform, @NonNull final String bucketName) {
 		final var currentTimestamp = LocalDateTime.now(ZoneOffset.UTC);
 		final var fileDetail = new FileDetail();
 		final var loggedInUser = LoggedInUserDetailProvider.getId();
@@ -38,6 +41,7 @@ public class FileDetailServiceImpl implements FileDetailService {
 		fileDetail.setContentDisposition(file.getOriginalFilename());
 		fileDetail.setContentType(file.getContentType());
 		fileDetail.setContentSize(file.getSize());
+		fileDetail.setCustomMetadata(customMetadata);
 		fileDetail.setCreatedBy(loggedInUser);
 		fileDetail.setUpdatedBy(loggedInUser);
 		fileDetail.setCreatedAt(currentTimestamp);

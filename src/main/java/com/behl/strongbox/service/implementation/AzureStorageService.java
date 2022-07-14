@@ -3,6 +3,7 @@ package com.behl.strongbox.service.implementation;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,7 @@ public class AzureStorageService {
 	private final AzureConfigurationProperties azureConfigurationProperties;
 	private final FileDetailService fileDetailService;
 
-	public FileStorageSuccessDto save(final MultipartFile file) {
+	public FileStorageSuccessDto save(final MultipartFile file, final Map<String, Object> customMetadata) {
 		log.info("Uploading '{}' to configured Azure Container : {}", file.getOriginalFilename(), LocalDateTime.now());
 		var blobClient = blobContainerClient.getBlobClient(file.getOriginalFilename());
 		try {
@@ -44,7 +45,7 @@ public class AzureStorageService {
 			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
 					"UNABLE TO STORE FILE TO CONFIGURED AZURE CONTAINER", exception);
 		}
-		final UUID savedFileDetailId = fileDetailService.save(file, Platform.AZURE,
+		final UUID savedFileDetailId = fileDetailService.save(file, customMetadata, Platform.AZURE,
 				azureConfigurationProperties.getContainer());
 		return FileStorageSuccessDto.builder().referenceId(savedFileDetailId).build();
 	}

@@ -6,6 +6,7 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class AwsStorageService {
 	 * @param file: represents an object to be saved in configured S3 Bucket
 	 * @return HttpStatus 200 OK if file was saved.
 	 */
-	public FileStorageSuccessDto save(final MultipartFile file) {
+	public FileStorageSuccessDto save(final MultipartFile file, final Map<String, Object> customMetadata) {
 		final var metadata = S3Utility.constructMetadata(file);
 		final var s3Properties = awsConfigurationProperties.getS3();
 		try {
@@ -61,7 +62,7 @@ public class AwsStorageService {
 			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
 					"UNABLE TO STORE FILE TO CONFIGURED S3 BUCKET", exception);
 		}
-		final UUID savedFileDetailId = fileDetailService.save(file, Platform.AWS,
+		final UUID savedFileDetailId = fileDetailService.save(file, customMetadata, Platform.AWS,
 				awsConfigurationProperties.getS3().getBucketName());
 		return FileStorageSuccessDto.builder().referenceId(savedFileDetailId).build();
 	}

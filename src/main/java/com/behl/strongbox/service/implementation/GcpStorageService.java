@@ -3,6 +3,7 @@ package com.behl.strongbox.service.implementation;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,7 +41,7 @@ public class GcpStorageService {
 	private final GcpStorageConfigurationProperties gcpStorageConfigurationProperties;
 	private final FileDetailService fileDetailService;
 
-	public FileStorageSuccessDto save(@NonNull final MultipartFile file) {
+	public FileStorageSuccessDto save(@NonNull final MultipartFile file, final Map<String, Object> customMetadata) {
 		final String bucketName = gcpStorageConfigurationProperties.getBucketName();
 		log.info("Uploading '{}' to configured GCP Bucket '{}' : {}", file.getOriginalFilename(), bucketName,
 				LocalDateTime.now());
@@ -53,7 +54,7 @@ public class GcpStorageService {
 			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
 					"UNABLE TO STORE FILE TO CONFIGURED GCP BUCKET", exception);
 		}
-		final UUID savedFileDetailId = fileDetailService.save(file, Platform.GCP,
+		final UUID savedFileDetailId = fileDetailService.save(file, customMetadata, Platform.GCP,
 				gcpStorageConfigurationProperties.getBucketName());
 		return FileStorageSuccessDto.builder().referenceId(savedFileDetailId).build();
 	}
