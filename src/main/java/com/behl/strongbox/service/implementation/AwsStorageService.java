@@ -6,6 +6,7 @@ import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
@@ -22,27 +23,32 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.behl.strongbox.configuration.properties.AwsConfigurationProperties;
+import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
+import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
+import com.behl.strongbox.service.FileDetailService;
 import com.behl.strongbox.utility.S3Utility;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AwsStorageService {
 
 	@Autowired(required = false)
 	private AmazonS3 amazonS3;
 
-	@Autowired
-	private AwsConfigurationProperties awsConfigurationProperties;
+	private final AwsConfigurationProperties awsConfigurationProperties;
+	private final FileDetailService fileDetailService;
 
 	/**
 	 * @param file: represents an object to be saved in configured S3 Bucket
 	 * @return HttpStatus 200 OK if file was saved.
 	 */
-	public HttpStatus save(final MultipartFile file) {
+	public FileStorageSuccessDto save(final MultipartFile file) {
 		final var metadata = S3Utility.constructMetadata(file);
 		final var s3Properties = awsConfigurationProperties.getS3();
 		try {
@@ -55,24 +61,27 @@ public class AwsStorageService {
 			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
 					"UNABLE TO STORE FILE TO CONFIGURED S3 BUCKET", exception);
 		}
-		return HttpStatus.CREATED;
+		final UUID savedFileDetailId = fileDetailService.save(file, Platform.AWS,
+				awsConfigurationProperties.getS3().getBucketName());
+		return FileStorageSuccessDto.builder().referenceId(savedFileDetailId).build();
 	}
 
 	/**
 	 * Retrieves the file from configured S3 Bucket corresponding to provided
-	 * keyName
+	 * referenceId
 	 * 
 	 * @return com.behl.strongbox.dto.FileRetrievalDto.class
 	 */
-	public FileRetrievalDto retrieve(final String keyName) {
+	public FileRetrievalDto retrieve(final UUID referenceId) {
+		final var fileDetail = fileDetailService.getById(referenceId);
 		final String bucketName = awsConfigurationProperties.getS3().getBucketName();
-		final var getObjectRequest = new GetObjectRequest(bucketName, keyName);
+		final var getObjectRequest = new GetObjectRequest(bucketName, fileDetail.getContentDisposition());
 		S3Object s3Object;
 		try {
 			s3Object = amazonS3.getObject(getObjectRequest);
 		} catch (final SdkClientException exception) {
-			log.error("UNABLE TO RETIEVE FILE WITH KEY '{}' FROM S3 BUCKET '{}' : {}", keyName, bucketName,
-					LocalDateTime.now(), exception);
+			log.error("UNABLE TO RETIEVE FILE WITH KEY '{}' FROM S3 BUCKET '{}' : {}",
+					fileDetail.getContentDisposition(), bucketName, LocalDateTime.now(), exception);
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "UNABLE TO RETRIEVE FILE", exception);
 		}
 

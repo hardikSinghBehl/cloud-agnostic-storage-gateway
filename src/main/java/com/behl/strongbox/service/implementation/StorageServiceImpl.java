@@ -1,6 +1,7 @@
 package com.behl.strongbox.service.implementation;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -9,7 +10,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
+import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
+import com.behl.strongbox.service.FileDetailService;
 import com.behl.strongbox.service.StorageService;
 
 import lombok.NonNull;
@@ -25,9 +28,10 @@ public class StorageServiceImpl implements StorageService {
 	private final AzureStorageService azureStorageService;
 	private final GcpStorageService gcpStorageService;
 	private final S3EmulatorService emulatorService;
+	private final FileDetailService fileDetailService;
 
 	@Override
-	public HttpStatus save(@NonNull Platform platform, @NonNull MultipartFile file) {
+	public FileStorageSuccessDto save(@NonNull Platform platform, @NonNull MultipartFile file) {
 		if (Platform.AWS.equals(platform))
 			return awsStorageService.save(file);
 		else if (Platform.AZURE.equals(platform))
@@ -41,15 +45,17 @@ public class StorageServiceImpl implements StorageService {
 	}
 
 	@Override
-	public FileRetrievalDto retrieve(@NonNull Platform platform, @NonNull String keyName) {
+	public FileRetrievalDto retrieve(@NonNull UUID referenceId) {
+		final var fileDetail = fileDetailService.getById(referenceId);
+		final var platform = fileDetail.getPlatform();
 		if (Platform.AWS.equals(platform))
-			return awsStorageService.retrieve(keyName);
+			return awsStorageService.retrieve(referenceId);
 		else if (Platform.AZURE.equals(platform))
-			return azureStorageService.retrieve(keyName);
+			return azureStorageService.retrieve(referenceId);
 		else if (Platform.GCP.equals(platform))
-			return gcpStorageService.retrieve(keyName);
+			return gcpStorageService.retrieve(referenceId);
 		else if (Platform.EMULATION.equals(platform))
-			return emulatorService.retrieve(keyName);
+			return emulatorService.retrieve(referenceId);
 		else
 			throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
