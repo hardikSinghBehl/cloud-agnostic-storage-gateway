@@ -58,7 +58,7 @@ public class StorageController {
 		platformUtility.validateIfEnabled(platform);
 		final var storageService = storageFactory.get(platform);
 		final var fileStorageResponse = storageService.save(file, JsonUtil.toMap(customMetadata));
-		return ResponseEntity.status(HttpStatus.OK).body(fileStorageResponse);
+		return ResponseEntity.status(HttpStatus.CREATED).body(fileStorageResponse);
 	}
 
 	@CheckIfAuthorizedUser
