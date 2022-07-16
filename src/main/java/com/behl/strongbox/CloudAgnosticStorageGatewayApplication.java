@@ -13,6 +13,7 @@ import com.behl.strongbox.configuration.properties.AzureConfigurationProperties;
 import com.behl.strongbox.configuration.properties.DigitalOceanSpacesConfigurationProperties;
 import com.behl.strongbox.configuration.properties.GcpStorageConfigurationProperties;
 import com.behl.strongbox.configuration.properties.S3NinjaConfigurationProperties;
+import com.behl.strongbox.configuration.properties.WasabiConfigurationProperties;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -29,10 +30,12 @@ public class CloudAgnosticStorageGatewayApplication {
 		var gcpConfigurationProperties = applicationContext.getBean(GcpStorageConfigurationProperties.class);
 		var digitalOceanConfigurationProperties = applicationContext
 				.getBean(DigitalOceanSpacesConfigurationProperties.class);
+		var wasabiConfigurationProperties = applicationContext.getBean(WasabiConfigurationProperties.class);
 		var s3NinjaEmulatorConfigurationProperties = applicationContext.getBean(S3NinjaConfigurationProperties.class);
 
 		if (allDisabled(awsConfigurationProperties, azureConfigurationProperties, gcpConfigurationProperties,
-				digitalOceanConfigurationProperties, s3NinjaEmulatorConfigurationProperties)) {
+				digitalOceanConfigurationProperties, wasabiConfigurationProperties,
+				s3NinjaEmulatorConfigurationProperties)) {
 			log.error(
 					"Atleast 1 Storage-service provider must be enabled : {} : Go to 'application.properties' file to update configuration",
 					LocalDateTime.now());
@@ -43,6 +46,7 @@ public class CloudAgnosticStorageGatewayApplication {
 		validateConfiguration(azureConfigurationProperties);
 		validateConfiguration(gcpConfigurationProperties);
 		validateConfiguration(digitalOceanConfigurationProperties);
+		validateConfiguration(wasabiConfigurationProperties);
 		validateConfiguration(s3NinjaEmulatorConfigurationProperties);
 	}
 
@@ -109,6 +113,20 @@ public class CloudAgnosticStorageGatewayApplication {
 		}
 	}
 
+	private static void validateConfiguration(final WasabiConfigurationProperties configuration) {
+		if (BooleanUtils.isTrue(configuration.getEnabled())) {
+			if (StringUtils.isNullOrEmpty(configuration.getAccessKey())
+					|| StringUtils.isNullOrEmpty(configuration.getSecretKey())
+					|| StringUtils.isNullOrEmpty(configuration.getBucketName())
+					|| StringUtils.isNullOrEmpty(configuration.getRegion())) {
+				log.error(
+						"All configuration values must be present for Digital Ocean Storage under 'com.behl.strongbox.wasabi.*' in application.properties file. Refer {}",
+						WasabiConfigurationProperties.class.getName());
+				exit();
+			}
+		}
+	}
+
 	private static void validateConfiguration(final S3NinjaConfigurationProperties configuration) {
 		if (BooleanUtils.isTrue(configuration.getEnabled())) {
 			if (StringUtils.isNullOrEmpty(configuration.getAccessKey())
@@ -127,6 +145,7 @@ public class CloudAgnosticStorageGatewayApplication {
 			final AzureConfigurationProperties azureConfigurationProperties,
 			final GcpStorageConfigurationProperties gcpStorageConfigurationProperties,
 			final DigitalOceanSpacesConfigurationProperties digitalOceanSpacesConfigurationProperties,
+			final WasabiConfigurationProperties wasabiConfigurationProperties,
 			final S3NinjaConfigurationProperties s3NinjaConfigurationProperties) {
 		return (awsConfigurationProperties.getEnabled() == null
 				|| BooleanUtils.isFalse(awsConfigurationProperties.getEnabled()))
@@ -136,6 +155,8 @@ public class CloudAgnosticStorageGatewayApplication {
 						|| BooleanUtils.isFalse(gcpStorageConfigurationProperties.getEnabled()))
 				&& (digitalOceanSpacesConfigurationProperties.getEnabled() == null
 						|| BooleanUtils.isFalse(digitalOceanSpacesConfigurationProperties.getEnabled()))
+				&& (wasabiConfigurationProperties.getEnabled() == null
+						|| BooleanUtils.isFalse(wasabiConfigurationProperties.getEnabled()))
 				&& (s3NinjaConfigurationProperties.getEnabled() == null
 						|| BooleanUtils.isFalse(s3NinjaConfigurationProperties.getEnabled()));
 	}
