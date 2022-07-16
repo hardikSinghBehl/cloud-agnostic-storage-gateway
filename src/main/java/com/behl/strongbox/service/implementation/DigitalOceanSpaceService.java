@@ -107,8 +107,8 @@ public class DigitalOceanSpaceService implements StorageService {
 			return PresignedUrlResponseDto.builder().url(presignedUrl.toURI().toString())
 					.validUntil(validUntilTimestamp).build();
 		} catch (final SdkClientException | URISyntaxException exception) {
-			log.error("EXCEPTION OCCURRED WHILE GENERATING PRE-SIGNED URL FOR '{}' IN S3 BUCKET {} : {}", keyName,
-					bucketName, LocalDateTime.now(), exception);
+			log.error("EXCEPTION OCCURRED WHILE GENERATING PRE-SIGNED URL FOR '{}' IN DIGITAL OCEAN SPACES {} : {}",
+					keyName, bucketName, LocalDateTime.now(), exception);
 			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "UNABLE TO GENERATE PRE-SIGNED URL",
 					exception);
 		}
