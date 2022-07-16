@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.behl.strongbox.configuration.properties.AwsConfigurationProperties;
 import com.behl.strongbox.configuration.properties.AzureConfigurationProperties;
+import com.behl.strongbox.configuration.properties.DigitalOceanSpacesConfigurationProperties;
 import com.behl.strongbox.configuration.properties.GcpStorageConfigurationProperties;
 import com.behl.strongbox.configuration.properties.S3NinjaConfigurationProperties;
 import com.behl.strongbox.constant.Platform;
@@ -25,6 +26,7 @@ public class PlatformUtility {
 	private final AwsConfigurationProperties awsConfigurationProperties;
 	private final AzureConfigurationProperties azureConfigurationProperties;
 	private final GcpStorageConfigurationProperties gcpStorageConfigurationProperties;
+	private final DigitalOceanSpacesConfigurationProperties digitalOceanSpacesConfigurationProperties;
 	private final S3NinjaConfigurationProperties s3NinjaConfigurationProperties;
 
 	public void validateIfEnabled(@NonNull final Platform platform) {
@@ -44,8 +46,12 @@ public class PlatformUtility {
 			return BooleanUtils.isTrue(azureConfigurationProperties.getEnabled());
 		else if (Platform.GCP.equals(platform))
 			return BooleanUtils.isTrue(gcpStorageConfigurationProperties.getEnabled());
-		else
+		else if (Platform.DIGITAL_OCEAN_SPACES.equals(platform))
+			return BooleanUtils.isTrue(digitalOceanSpacesConfigurationProperties.getEnabled());
+		else if (Platform.EMULATION.equals(platform))
 			return BooleanUtils.isTrue(s3NinjaConfigurationProperties.getEnabled());
+		else
+			throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
 }

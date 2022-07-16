@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.repository.config.EnableMongoRepositorie
 import com.amazonaws.util.StringUtils;
 import com.behl.strongbox.configuration.properties.AwsConfigurationProperties;
 import com.behl.strongbox.configuration.properties.AzureConfigurationProperties;
+import com.behl.strongbox.configuration.properties.DigitalOceanSpacesConfigurationProperties;
 import com.behl.strongbox.configuration.properties.GcpStorageConfigurationProperties;
 import com.behl.strongbox.configuration.properties.S3NinjaConfigurationProperties;
 
@@ -26,10 +27,12 @@ public class CloudAgnosticStorageGatewayApplication {
 		var awsConfigurationProperties = applicationContext.getBean(AwsConfigurationProperties.class);
 		var azureConfigurationProperties = applicationContext.getBean(AzureConfigurationProperties.class);
 		var gcpConfigurationProperties = applicationContext.getBean(GcpStorageConfigurationProperties.class);
+		var digitalOceanConfigurationProperties = applicationContext
+				.getBean(DigitalOceanSpacesConfigurationProperties.class);
 		var s3NinjaEmulatorConfigurationProperties = applicationContext.getBean(S3NinjaConfigurationProperties.class);
 
 		if (allDisabled(awsConfigurationProperties, azureConfigurationProperties, gcpConfigurationProperties,
-				s3NinjaEmulatorConfigurationProperties)) {
+				digitalOceanConfigurationProperties, s3NinjaEmulatorConfigurationProperties)) {
 			log.error(
 					"Atleast 1 Storage-service provider must be enabled : {} : Go to 'application.properties' file to update configuration",
 					LocalDateTime.now());
@@ -39,6 +42,7 @@ public class CloudAgnosticStorageGatewayApplication {
 		validateConfiguration(awsConfigurationProperties);
 		validateConfiguration(azureConfigurationProperties);
 		validateConfiguration(gcpConfigurationProperties);
+		validateConfiguration(digitalOceanConfigurationProperties);
 		validateConfiguration(s3NinjaEmulatorConfigurationProperties);
 	}
 
@@ -90,6 +94,21 @@ public class CloudAgnosticStorageGatewayApplication {
 		}
 	}
 
+	private static void validateConfiguration(final DigitalOceanSpacesConfigurationProperties configuration) {
+		if (BooleanUtils.isTrue(configuration.getEnabled())) {
+			if (StringUtils.isNullOrEmpty(configuration.getAccessKey())
+					|| StringUtils.isNullOrEmpty(configuration.getSecretKey())
+					|| StringUtils.isNullOrEmpty(configuration.getBucketName())
+					|| StringUtils.isNullOrEmpty(configuration.getEndpoint())
+					|| StringUtils.isNullOrEmpty(configuration.getRegion())) {
+				log.error(
+						"All configuration values must be present for Digital Ocean Storage under 'com.behl.strongbox.digital-ocean.spaces.*' in application.properties file. Refer {}",
+						DigitalOceanSpacesConfigurationProperties.class.getName());
+				exit();
+			}
+		}
+	}
+
 	private static void validateConfiguration(final S3NinjaConfigurationProperties configuration) {
 		if (BooleanUtils.isTrue(configuration.getEnabled())) {
 			if (StringUtils.isNullOrEmpty(configuration.getAccessKey())
@@ -107,6 +126,7 @@ public class CloudAgnosticStorageGatewayApplication {
 	private static boolean allDisabled(final AwsConfigurationProperties awsConfigurationProperties,
 			final AzureConfigurationProperties azureConfigurationProperties,
 			final GcpStorageConfigurationProperties gcpStorageConfigurationProperties,
+			final DigitalOceanSpacesConfigurationProperties digitalOceanSpacesConfigurationProperties,
 			final S3NinjaConfigurationProperties s3NinjaConfigurationProperties) {
 		return (awsConfigurationProperties.getEnabled() == null
 				|| BooleanUtils.isFalse(awsConfigurationProperties.getEnabled()))
@@ -114,6 +134,8 @@ public class CloudAgnosticStorageGatewayApplication {
 						|| BooleanUtils.isFalse(azureConfigurationProperties.getEnabled()))
 				&& (gcpStorageConfigurationProperties.getEnabled() == null
 						|| BooleanUtils.isFalse(gcpStorageConfigurationProperties.getEnabled()))
+				&& (digitalOceanSpacesConfigurationProperties.getEnabled() == null
+						|| BooleanUtils.isFalse(digitalOceanSpacesConfigurationProperties.getEnabled()))
 				&& (s3NinjaConfigurationProperties.getEnabled() == null
 						|| BooleanUtils.isFalse(s3NinjaConfigurationProperties.getEnabled()));
 	}

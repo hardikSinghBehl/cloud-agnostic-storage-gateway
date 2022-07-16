@@ -39,7 +39,7 @@ public class S3EmulatorService implements StorageService {
 
 	@Autowired(required = false)
 	@Qualifier("emulatedAmazonS3")
-	private AmazonS3 amazonS3;
+	private AmazonS3 s3NinjaEmulator;
 
 	private final S3NinjaConfigurationProperties s3NinjaConfigurationProperties;
 	private final FileDetailService fileDetailService;
@@ -55,7 +55,7 @@ public class S3EmulatorService implements StorageService {
 		try {
 			final var putObjectRequest = new PutObjectRequest(s3Properties.getBucketName(), file.getOriginalFilename(),
 					file.getInputStream(), metadata);
-			amazonS3.putObject(putObjectRequest);
+			s3NinjaEmulator.putObject(putObjectRequest);
 		} catch (final SdkClientException | IOException exception) {
 			log.error("UNABLE TO STORE {} IN S3 BUCKET {} : {} ", file.getOriginalFilename(),
 					s3Properties.getBucketName(), LocalDateTime.now(), exception);
@@ -80,7 +80,7 @@ public class S3EmulatorService implements StorageService {
 		final var getObjectRequest = new GetObjectRequest(bucketName, fileDetail.getContentDisposition());
 		S3Object s3Object;
 		try {
-			s3Object = amazonS3.getObject(getObjectRequest);
+			s3Object = s3NinjaEmulator.getObject(getObjectRequest);
 		} catch (final SdkClientException exception) {
 			log.error("UNABLE TO RETIEVE FILE WITH KEY '{}' FROM S3 BUCKET '{}' : {}",
 					fileDetail.getContentDisposition(), bucketName, LocalDateTime.now(), exception);
