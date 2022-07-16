@@ -92,7 +92,7 @@ public class StorageController {
 	}
 
 	@GetMapping(value = "/preview/{referenceId}")
-	@Operation(summary = "Generates a Presigned-URL to grant temporary access to object", description = "Generates a Presigned-URL to grant temporary access to object corresponding to provided key, The Presigned-URL is valid for upto 10 minutes after generation")
+	@Operation(summary = "Generates a Presigned-URL to grant temporary access to object. (Only AWS and Digital Ocean supported currently)", description = "Generates a Presigned-URL to grant temporary access to object corresponding to provided key, The Presigned-URL is valid for upto 10 minutes after generation")
 	@ApiResponses(value = { @ApiResponse(responseCode = "200", description = "Presigned-URL generated successfully"),
 			@ApiResponse(responseCode = "417", description = "Unable to generate Presigned-URL") })
 	@ResponseStatus(HttpStatus.OK)

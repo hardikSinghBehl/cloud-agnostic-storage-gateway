@@ -1,11 +1,14 @@
 package com.behl.strongbox.service.implementation;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
 
-import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -15,8 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.amazonaws.HttpMethod;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
@@ -25,6 +30,7 @@ import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
+import com.behl.strongbox.security.utility.LoggedInUserDetailProvider;
 import com.behl.strongbox.service.FileDetailService;
 import com.behl.strongbox.service.StorageService;
 import com.behl.strongbox.utility.S3Utility;
@@ -85,8 +91,27 @@ public class DigitalOceanSpaceService implements StorageService {
 
 	@Override
 	public PresignedUrlResponseDto generatePresignedUrl(@NonNull UUID referenceId) {
-		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,
-				"FUNCTIONALITY NOT AVAILABLE CURRENTLY FOR DIGITAL OCEAN SPACES", new NotImplementedException());
+		final var fileDetail = fileDetailService.getById(referenceId);
+		final var keyName = fileDetail.getContentDisposition();
+		final var bucketName = digitalOceanSpacesConfigurationProperties.getBucketName();
+		final var validUntilTimestamp = LocalDateTime.now().plusMinutes(10);
+
+		log.info("Presigned URL Generation for file '{}' initiated by user '{}' : {}", keyName,
+				LoggedInUserDetailProvider.getId(), LocalDateTime.now());
+		GeneratePresignedUrlRequest generatePresignedUrlRequest = new GeneratePresignedUrlRequest(bucketName, keyName,
+				HttpMethod.GET);
+		generatePresignedUrlRequest.setExpiration(Date.from(validUntilTimestamp.toInstant(ZoneOffset.UTC)));
+
+		try {
+			final URL presignedUrl = digitalOceanSpace.generatePresignedUrl(generatePresignedUrlRequest);
+			return PresignedUrlResponseDto.builder().url(presignedUrl.toURI().toString())
+					.validUntil(validUntilTimestamp).build();
+		} catch (final SdkClientException | URISyntaxException exception) {
+			log.error("EXCEPTION OCCURRED WHILE GENERATING PRE-SIGNED URL FOR '{}' IN S3 BUCKET {} : {}", keyName,
+					bucketName, LocalDateTime.now(), exception);
+			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "UNABLE TO GENERATE PRE-SIGNED URL",
+					exception);
+		}
 	}
 
 }
