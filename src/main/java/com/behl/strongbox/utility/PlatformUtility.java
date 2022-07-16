@@ -11,6 +11,7 @@ import com.behl.strongbox.configuration.properties.AzureConfigurationProperties;
 import com.behl.strongbox.configuration.properties.DigitalOceanSpacesConfigurationProperties;
 import com.behl.strongbox.configuration.properties.GcpStorageConfigurationProperties;
 import com.behl.strongbox.configuration.properties.S3NinjaConfigurationProperties;
+import com.behl.strongbox.configuration.properties.WasabiConfigurationProperties;
 import com.behl.strongbox.constant.Platform;
 
 import lombok.NonNull;
@@ -27,6 +28,7 @@ public class PlatformUtility {
 	private final AzureConfigurationProperties azureConfigurationProperties;
 	private final GcpStorageConfigurationProperties gcpStorageConfigurationProperties;
 	private final DigitalOceanSpacesConfigurationProperties digitalOceanSpacesConfigurationProperties;
+	private final WasabiConfigurationProperties wasabiConfigurationProperties;
 	private final S3NinjaConfigurationProperties s3NinjaConfigurationProperties;
 
 	public void validateIfEnabled(@NonNull final Platform platform) {
@@ -48,6 +50,8 @@ public class PlatformUtility {
 			return BooleanUtils.isTrue(gcpStorageConfigurationProperties.getEnabled());
 		else if (Platform.DIGITAL_OCEAN_SPACES.equals(platform))
 			return BooleanUtils.isTrue(digitalOceanSpacesConfigurationProperties.getEnabled());
+		else if (Platform.WASABI.equals(platform))
+			return BooleanUtils.isTrue(wasabiConfigurationProperties.getEnabled());
 		else if (Platform.EMULATION.equals(platform))
 			return BooleanUtils.isTrue(s3NinjaConfigurationProperties.getEnabled());
 		else
