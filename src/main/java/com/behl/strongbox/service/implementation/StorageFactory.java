@@ -22,6 +22,7 @@ public class StorageFactory {
 	private final GcpStorageService gcpStorageService;
 	private final S3EmulatorService emulatorService;
 	private final DigitalOceanSpaceService digitalOceanSpaceService;
+	private final WasabiStorageService wasabiStorageService;
 	private final FileDetailService fileDetailService;
 
 	/**
@@ -41,6 +42,8 @@ public class StorageFactory {
 			return emulatorService;
 		else if (Platform.DIGITAL_OCEAN_SPACES.equals(platform))
 			return digitalOceanSpaceService;
+		else if (Platform.WASABI.equals(platform))
+			return wasabiStorageService;
 		else
 			throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
