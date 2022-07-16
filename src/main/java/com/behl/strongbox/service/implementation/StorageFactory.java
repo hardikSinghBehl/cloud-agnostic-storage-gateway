@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.service.FileDetailService;
 import com.behl.strongbox.service.StorageService;
+import com.behl.strongbox.utility.PlatformUtility;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ public class StorageFactory {
 	private final DigitalOceanSpaceService digitalOceanSpaceService;
 	private final WasabiStorageService wasabiStorageService;
 	private final FileDetailService fileDetailService;
+	private final PlatformUtility platformUtility;
 
 	/**
 	 * 
@@ -55,6 +57,7 @@ public class StorageFactory {
 	 */
 	public StorageService get(@NonNull final UUID referenceId) {
 		final var platform = fileDetailService.getById(referenceId).getPlatform();
+		platformUtility.validateIfEnabled(platform);
 		return get(platform);
 	}
 
