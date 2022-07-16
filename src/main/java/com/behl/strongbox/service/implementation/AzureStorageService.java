@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpStatus;
@@ -18,15 +19,18 @@ import com.behl.strongbox.configuration.properties.AzureConfigurationProperties;
 import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.FileStorageSuccessDto;
+import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.FileDetailService;
+import com.behl.strongbox.service.StorageService;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class AzureStorageService {
+public class AzureStorageService implements StorageService {
 
 	@Autowired(required = false)
 	private BlobContainerClient blobContainerClient;
@@ -34,6 +38,7 @@ public class AzureStorageService {
 	private final AzureConfigurationProperties azureConfigurationProperties;
 	private final FileDetailService fileDetailService;
 
+	@Override
 	public FileStorageSuccessDto save(final MultipartFile file, final Map<String, Object> customMetadata) {
 		log.info("Uploading '{}' to configured Azure Container : {}", file.getOriginalFilename(), LocalDateTime.now());
 		var blobClient = blobContainerClient.getBlobClient(file.getOriginalFilename());
@@ -50,6 +55,7 @@ public class AzureStorageService {
 		return FileStorageSuccessDto.builder().referenceId(savedFileDetailId).build();
 	}
 
+	@Override
 	public FileRetrievalDto retrieve(final UUID referenceId) {
 		final var fileDetail = fileDetailService.getById(referenceId);
 		log.info("Retrieving '{}' from Azure Container '{}' : {}", fileDetail.getContentDisposition(),
@@ -62,6 +68,12 @@ public class AzureStorageService {
 		}
 		return FileRetrievalDto.builder().fileName(fileDetail.getContentDisposition())
 				.fileContent(new InputStreamResource(new ByteArrayInputStream(outputStream.toByteArray()))).build();
+	}
+
+	@Override
+	public PresignedUrlResponseDto generatePresignedUrl(@NonNull final UUID referenceId) {
+		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "FUNCTIONALITY NOT AVAILABLE CURRENTLY FOR AZURE",
+				new NotImplementedException());
 	}
 
 }

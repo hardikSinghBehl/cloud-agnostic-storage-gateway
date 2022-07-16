@@ -29,15 +29,17 @@ import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.FileDetailService;
+import com.behl.strongbox.service.StorageService;
 import com.behl.strongbox.utility.S3Utility;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class AwsStorageService {
+public class AwsStorageService implements StorageService {
 
 	@Autowired(required = false)
 	private AmazonS3 amazonS3;
@@ -49,6 +51,7 @@ public class AwsStorageService {
 	 * @param file: represents an object to be saved in configured S3 Bucket
 	 * @return HttpStatus 200 OK if file was saved.
 	 */
+	@Override
 	public FileStorageSuccessDto save(final MultipartFile file, final Map<String, Object> customMetadata) {
 		final var metadata = S3Utility.constructMetadata(file);
 		final var s3Properties = awsConfigurationProperties.getS3();
@@ -73,6 +76,7 @@ public class AwsStorageService {
 	 * 
 	 * @return com.behl.strongbox.dto.FileRetrievalDto.class
 	 */
+	@Override
 	public FileRetrievalDto retrieve(final UUID referenceId) {
 		final var fileDetail = fileDetailService.getById(referenceId);
 		final String bucketName = awsConfigurationProperties.getS3().getBucketName();
@@ -94,12 +98,15 @@ public class AwsStorageService {
 	 * Generates a Presigned URL to enable access to preview object corresponding to
 	 * provided key for 10 minutes
 	 * 
-	 * @param keyName: object key corresponding to which Pre-signed URL is to be
-	 *                 generated
+	 * @param referenceId: saved referenceId corresponding to which Pre-signed URL
+	 *                     is to be generated
 	 * @return PresignedUrlResponseDto.class containing the presigned-URL for the
 	 *         specified object and the valid until timestamp
 	 */
-	public PresignedUrlResponseDto generatePresignedUrl(final String keyName) {
+	@Override
+	public PresignedUrlResponseDto generatePresignedUrl(@NonNull final UUID referenceId) {
+		final var fileDetail = fileDetailService.getById(referenceId);
+		final var keyName = fileDetail.getContentDisposition();
 		final var s3Properties = awsConfigurationProperties.getS3();
 		final var validUntilTimestamp = LocalDateTime.now().plusMinutes(10);
 

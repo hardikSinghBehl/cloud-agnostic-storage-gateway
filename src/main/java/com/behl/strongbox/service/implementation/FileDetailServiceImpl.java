@@ -59,4 +59,9 @@ public class FileDetailServiceImpl implements FileDetailService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Invalid referenceId provided"));
 	}
 
+	@Override
+	public Map<String, Object> retrieveMetaDataById(@NonNull UUID referenceId) {
+		return getById(referenceId).getCustomMetadata();
+	}
+
 }

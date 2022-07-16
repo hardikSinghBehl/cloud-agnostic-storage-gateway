@@ -19,4 +19,6 @@ public interface FileDetailService {
 
 	FileDetail getById(@NonNull final UUID referenceId);
 
+	Map<String, Object> retrieveMetaDataById(@NonNull UUID referenceId);
+
 }
