@@ -1,0 +1,74 @@
+version: '3.7'
+services:
+  mongo_db:
+    image: "mongo:4.4.3"
+    restart: always
+    environment:
+      MONGO_INITDB_DATABASE: strongbox
+    ports:
+      - 27018:27017
+    networks:
+      - cloud-agnostic-storage-poc-network
+
+  s3-ninja:
+    image: scireum/s3-ninja:latest
+    volumes:
+      - ./data:/home/sirius/data
+    ports:
+    - 9000:9000
+    networks:
+      - cloud-agnostic-storage-poc-network
+      
+  cloud_agnostic_storage_backend_service:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+    - 8080:8080
+    depends_on:
+      - mongo_db
+      - s3-ninja
+    environment:
+      MONGODB_URI: mongodb://mongo_db/strongbox
+      S3_NINJA_ENDPOINT: http://s3-ninja:9000
+      # AWS Configuration : update the initial boolean value to true when configuring
+      AWS_ENABLED: 'false'
+      AWS_ACCESS_KEY: AWS-Access-Key
+      AWS_SECRET_KEY: AWS-Secret-Key
+      AWS_BUCKET_NAME: AWS-S3-Bucket-Name
+      AWS_BUCKET_REGION: AWS-S3-Bucket-Region
+      # Azure Configuration : update the initial boolean value to true when configuring
+      AZURE_ENABLED: 'false'
+      AZURE_CONTAINER_NAME: Azure-Container-Name
+      AZURE_CONNECTION_STRING: Azure-Connection-String
+      AZURE_SAS_TOKEN: Azure-SAS-Token
+      AZURE_SAS_URL: Azure-SAS-URL
+      # Google Cloud Platform Configuration : update the initial boolean value to true when configuring
+      GCP_ENABLED: 'false'
+      GCP_PROJECT_ID: GCP-Project-ID
+      GCP_BUCKET_NAME: GCP-Bucket-Name
+      GCP_AUTH_KEY_PATH: GCP-Auth-Key-Path
+      # Digital Ocean Spaces Configuration : update the initial boolean value to true when configuring
+      DIGITAL_OCEAN_ENABLED: 'false'
+      DIGITAL_OCEAN_ACCESS_KEY: Digital-Ocean-Spaces-Access-Token
+      DIGITAL_OCEAN_SECRET_KEY: Digital-Ocean-Spaces-Secret-Token
+      DIGITAL_OCEAN_BUCKET_NAME: Digital-Ocean-Spaces-Bucket-Name
+      DIGITAL_OCEAN_ENDPOINT: Digital-Ocean-Spaces-Endpoint
+      DIGITAL_OCEAN_REGION: Digital-Ocean-Spaces-Region
+      # Wasabi Configuration : update the initial boolean value to true when configuring
+      WASABI_ENABLED: 'false'
+      WASABI_ACCESS_KEY: Wasabi-Access-Key
+      WASABI_SECRET_KEY: Wasabi-Secret-Key
+      WASABI_BUCKET_NAME: Wasabi-Bucket-Name
+      WASABI_BUCKET_REGION: Wasabi-Bucket-Region
+      # S3 Ninja Emulation Configuration
+      S3_NINJA_ENABLED: 'true'
+      S3_NINJA_ACCESS_KEY: AKIAIOSFODNN7EXAMPLE
+      S3_NINJA_SECRET_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+      S3_NINJA_ENDPOINT: http://s3-ninja:9000
+      S3_NINJA_BUCKET_NAME: cloud-agnostic-storage-poc
+    networks:
+      - cloud-agnostic-storage-poc-network
+
+networks:
+  cloud-agnostic-storage-poc-network:
