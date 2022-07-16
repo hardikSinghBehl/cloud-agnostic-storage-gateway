@@ -31,7 +31,8 @@ public class DigitalOceanSpacesConfiguration {
 			var awsCredentials = new BasicAWSCredentials(digitalOceanSpacesConfigurationProperties.getAccessKey(),
 					digitalOceanSpacesConfigurationProperties.getSecretKey());
 			return AmazonS3ClientBuilder.standard().withEndpointConfiguration(endpointConfiguration)
-					.withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
+					.withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).withPathStyleAccessEnabled(true)
+					.build();
 		}
 		log.info("Digital Ocean Spaces Storage Integration Not Configured");
 		return null;
