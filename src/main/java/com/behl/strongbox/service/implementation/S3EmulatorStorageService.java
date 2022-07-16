@@ -26,7 +26,7 @@ import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.FileDetailService;
 import com.behl.strongbox.service.StorageService;
-import com.behl.strongbox.utility.S3Utility;
+import com.behl.strongbox.utility.StorageUtility;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class S3EmulatorService implements StorageService {
+public class S3EmulatorStorageService implements StorageService {
 
 	@Autowired(required = false)
 	@Qualifier("emulatedAmazonS3")
@@ -50,7 +50,7 @@ public class S3EmulatorService implements StorageService {
 	 */
 	@Override
 	public FileStorageSuccessDto save(final MultipartFile file, final Map<String, Object> customMetadata) {
-		final var metadata = S3Utility.constructMetadata(file);
+		final var metadata = StorageUtility.constructMetadata(file);
 		final var s3Properties = s3NinjaConfigurationProperties.getS3();
 		try {
 			final var putObjectRequest = new PutObjectRequest(s3Properties.getBucketName(), file.getOriginalFilename(),

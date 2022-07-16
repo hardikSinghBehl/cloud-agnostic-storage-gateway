@@ -21,8 +21,8 @@ public class StorageFactory {
 	private final AwsStorageService awsStorageService;
 	private final AzureStorageService azureStorageService;
 	private final GcpStorageService gcpStorageService;
-	private final S3EmulatorService emulatorService;
-	private final DigitalOceanSpaceService digitalOceanSpaceService;
+	private final S3EmulatorStorageService emulatorService;
+	private final DigitalOceanSpaceStorageService digitalOceanSpaceService;
 	private final WasabiStorageService wasabiStorageService;
 	private final FileDetailService fileDetailService;
 	private final PlatformUtility platformUtility;

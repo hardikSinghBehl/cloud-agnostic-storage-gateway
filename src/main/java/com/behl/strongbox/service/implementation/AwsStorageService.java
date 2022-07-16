@@ -30,7 +30,7 @@ import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.FileDetailService;
 import com.behl.strongbox.service.StorageService;
-import com.behl.strongbox.utility.S3Utility;
+import com.behl.strongbox.utility.StorageUtility;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -53,7 +53,7 @@ public class AwsStorageService implements StorageService {
 	 */
 	@Override
 	public FileStorageSuccessDto save(final MultipartFile file, final Map<String, Object> customMetadata) {
-		final var metadata = S3Utility.constructMetadata(file);
+		final var metadata = StorageUtility.constructMetadata(file);
 		final var s3Properties = awsConfigurationProperties.getS3();
 		try {
 			final var putObjectRequest = new PutObjectRequest(s3Properties.getBucketName(), file.getOriginalFilename(),

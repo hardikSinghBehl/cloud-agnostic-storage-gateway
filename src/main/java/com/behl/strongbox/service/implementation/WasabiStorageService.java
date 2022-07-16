@@ -27,7 +27,7 @@ import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.FileDetailService;
 import com.behl.strongbox.service.StorageService;
-import com.behl.strongbox.utility.S3Utility;
+import com.behl.strongbox.utility.StorageUtility;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ public class WasabiStorageService implements StorageService {
 
 	@Override
 	public FileStorageSuccessDto save(@NonNull MultipartFile file, Map<String, Object> customMetadata) {
-		final var metadata = S3Utility.constructMetadata(file);
+		final var metadata = StorageUtility.constructMetadata(file);
 		final var bucketName = wasabiConfigurationProperties.getBucketName();
 		try {
 			final var putObjectRequest = new PutObjectRequest(bucketName, file.getOriginalFilename(),

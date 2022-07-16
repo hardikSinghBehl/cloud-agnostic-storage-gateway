@@ -33,7 +33,7 @@ import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.security.utility.LoggedInUserDetailProvider;
 import com.behl.strongbox.service.FileDetailService;
 import com.behl.strongbox.service.StorageService;
-import com.behl.strongbox.utility.S3Utility;
+import com.behl.strongbox.utility.StorageUtility;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +43,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 @EnableConfigurationProperties(value = DigitalOceanSpacesConfigurationProperties.class)
-public class DigitalOceanSpaceService implements StorageService {
+public class DigitalOceanSpaceStorageService implements StorageService {
 
 	@Autowired(required = false)
 	@Qualifier("digitalOceanSpace")
@@ -54,7 +54,7 @@ public class DigitalOceanSpaceService implements StorageService {
 
 	@Override
 	public FileStorageSuccessDto save(@NonNull MultipartFile file, Map<String, Object> customMetadata) {
-		final var metadata = S3Utility.constructMetadata(file);
+		final var metadata = StorageUtility.constructMetadata(file);
 		final var bucketName = digitalOceanSpacesConfigurationProperties.getBucketName();
 		try {
 			final var putObjectRequest = new PutObjectRequest(bucketName, file.getOriginalFilename(),
