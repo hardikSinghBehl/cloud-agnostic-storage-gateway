@@ -23,7 +23,7 @@ import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.FileDetailService;
-import com.behl.strongbox.service.StorageService;
+import com.behl.strongbox.service.implementation.StorageFactory;
 import com.behl.strongbox.utility.JsonUtil;
 import com.behl.strongbox.utility.PlatformUtility;
 
@@ -38,7 +38,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class StorageController {
 
-	private final StorageService storageService;
+	private final StorageFactory storageFactory;
 	private final FileDetailService fileDetailService;
 	private final PlatformUtility platformUtility;
 
@@ -56,7 +56,8 @@ public class StorageController {
 			@RequestPart(name = "customMetadata", required = false) final String customMetadata,
 			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
 		platformUtility.validateIfEnabled(platform);
-		final var fileStorageResponse = storageService.save(platform, file, JsonUtil.toMap(customMetadata));
+		final var storageService = storageFactory.get(platform);
+		final var fileStorageResponse = storageService.save(file, JsonUtil.toMap(customMetadata));
 		return ResponseEntity.status(HttpStatus.OK).body(fileStorageResponse);
 	}
 
@@ -70,6 +71,7 @@ public class StorageController {
 	public ResponseEntity<InputStreamResource> retrieve(
 			@PathVariable(name = "referenceId", required = true) final UUID referenceId,
 			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
+		final var storageService = storageFactory.get(referenceId);
 		final FileRetrievalDto fileRetrievalDto = storageService.retrieve(referenceId);
 		return ResponseEntity.status(HttpStatus.OK)
 				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment;filename=" + fileRetrievalDto.getFileName())
@@ -97,6 +99,7 @@ public class StorageController {
 	public ResponseEntity<PresignedUrlResponseDto> generatePresignedUrl(
 			@PathVariable(required = true, name = "referenceId") final UUID referenceId,
 			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
+		final var storageService = storageFactory.get(referenceId);
 		return ResponseEntity.ok(storageService.generatePresignedUrl(referenceId));
 	}
 
