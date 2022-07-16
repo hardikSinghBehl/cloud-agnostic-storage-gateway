@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.core.io.InputStreamResource;
@@ -18,7 +19,9 @@ import com.behl.strongbox.configuration.properties.GcpStorageConfigurationProper
 import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.FileStorageSuccessDto;
+import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.FileDetailService;
+import com.behl.strongbox.service.StorageService;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.BlobId;
 import com.google.cloud.storage.BlobInfo;
@@ -33,7 +36,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @EnableConfigurationProperties(value = GcpStorageConfigurationProperties.class)
 @RequiredArgsConstructor
-public class GcpStorageService {
+public class GcpStorageService implements StorageService {
 
 	@Autowired(required = false)
 	private Storage gcpStorage;
@@ -41,6 +44,7 @@ public class GcpStorageService {
 	private final GcpStorageConfigurationProperties gcpStorageConfigurationProperties;
 	private final FileDetailService fileDetailService;
 
+	@Override
 	public FileStorageSuccessDto save(@NonNull final MultipartFile file, final Map<String, Object> customMetadata) {
 		final String bucketName = gcpStorageConfigurationProperties.getBucketName();
 		log.info("Uploading '{}' to configured GCP Bucket '{}' : {}", file.getOriginalFilename(), bucketName,
@@ -59,6 +63,7 @@ public class GcpStorageService {
 		return FileStorageSuccessDto.builder().referenceId(savedFileDetailId).build();
 	}
 
+	@Override
 	public FileRetrievalDto retrieve(@NonNull UUID referenceId) {
 		final var fileDetail = fileDetailService.getById(referenceId);
 		final String bucketName = gcpStorageConfigurationProperties.getBucketName();
@@ -76,6 +81,12 @@ public class GcpStorageService {
 		}
 		return FileRetrievalDto.builder().fileName(fileDetail.getContentDisposition())
 				.fileContent(new InputStreamResource(new ByteArrayInputStream(fileContent))).build();
+	}
+
+	@Override
+	public PresignedUrlResponseDto generatePresignedUrl(@NonNull UUID referenceId) {
+		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED, "FUNCTIONALITY NOT AVAILABLE CURRENTLY FOR GCP",
+				new NotImplementedException());
 	}
 
 }

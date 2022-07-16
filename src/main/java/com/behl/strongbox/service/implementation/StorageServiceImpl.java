@@ -14,7 +14,6 @@ import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.FileDetailService;
-import com.behl.strongbox.service.StorageService;
 
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class StorageServiceImpl implements StorageService {
+public class StorageServiceImpl {
 
 	private final AwsStorageService awsStorageService;
 	private final AzureStorageService azureStorageService;
@@ -31,7 +30,6 @@ public class StorageServiceImpl implements StorageService {
 	private final S3EmulatorService emulatorService;
 	private final FileDetailService fileDetailService;
 
-	@Override
 	public FileStorageSuccessDto save(@NonNull Platform platform, @NonNull MultipartFile file,
 			final Map<String, Object> customMetadata) {
 		if (Platform.AWS.equals(platform))
@@ -46,7 +44,6 @@ public class StorageServiceImpl implements StorageService {
 			throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
-	@Override
 	public FileRetrievalDto retrieve(@NonNull UUID referenceId) {
 		final var fileDetail = fileDetailService.getById(referenceId);
 		final var platform = fileDetail.getPlatform();
@@ -62,7 +59,6 @@ public class StorageServiceImpl implements StorageService {
 			throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
 
-	@Override
 	public PresignedUrlResponseDto generatePresignedUrl(@NonNull UUID referenceId) {
 		final var fileDetail = fileDetailService.getById(referenceId);
 		final var platform = fileDetail.getPlatform();

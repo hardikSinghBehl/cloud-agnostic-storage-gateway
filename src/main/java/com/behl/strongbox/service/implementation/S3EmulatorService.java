@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 
+import org.apache.commons.lang3.NotImplementedException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.io.InputStreamResource;
@@ -22,16 +23,19 @@ import com.behl.strongbox.configuration.properties.S3NinjaConfigurationPropertie
 import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.FileStorageSuccessDto;
+import com.behl.strongbox.dto.PresignedUrlResponseDto;
 import com.behl.strongbox.service.FileDetailService;
+import com.behl.strongbox.service.StorageService;
 import com.behl.strongbox.utility.S3Utility;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class S3EmulatorService {
+public class S3EmulatorService implements StorageService {
 
 	@Autowired(required = false)
 	@Qualifier("emulatedAmazonS3")
@@ -44,6 +48,7 @@ public class S3EmulatorService {
 	 * @param file: represents an object to be saved in configured S3 Ninja endpoint
 	 * @return HttpStatus 200 OK if file was saved.
 	 */
+	@Override
 	public FileStorageSuccessDto save(final MultipartFile file, final Map<String, Object> customMetadata) {
 		final var metadata = S3Utility.constructMetadata(file);
 		final var s3Properties = s3NinjaConfigurationProperties.getS3();
@@ -68,6 +73,7 @@ public class S3EmulatorService {
 	 * 
 	 * @return com.behl.strongbox.dto.FileRetrievalDto.class
 	 */
+	@Override
 	public FileRetrievalDto retrieve(final UUID referenceId) {
 		final var fileDetail = fileDetailService.getById(referenceId);
 		final String bucketName = s3NinjaConfigurationProperties.getS3().getBucketName();
@@ -83,6 +89,12 @@ public class S3EmulatorService {
 
 		return FileRetrievalDto.builder().fileContent(new InputStreamResource(s3Object.getObjectContent()))
 				.fileName(s3Object.getKey()).build();
+	}
+
+	@Override
+	public PresignedUrlResponseDto generatePresignedUrl(@NonNull UUID referenceId) {
+		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,
+				"FUNCTIONALITY NOT AVAILABLE CURRENTLY FOR S3 EMULATOR", new NotImplementedException());
 	}
 
 }
