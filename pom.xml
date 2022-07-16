@@ -19,7 +19,7 @@
 
 	<properties>
 		<java.version>17</java.version>
-		<aws.sdk.version>1.12.255</aws.sdk.version>
+		<aws.sdk.version>1.12.261</aws.sdk.version>
 		<azure.sdk.version>12.18.0</azure.sdk.version>
 	</properties>
 
