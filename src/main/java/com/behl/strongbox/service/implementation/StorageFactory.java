@@ -21,6 +21,7 @@ public class StorageFactory {
 	private final AzureStorageService azureStorageService;
 	private final GcpStorageService gcpStorageService;
 	private final S3EmulatorService emulatorService;
+	private final DigitalOceanSpaceService digitalOceanSpaceService;
 	private final FileDetailService fileDetailService;
 
 	/**
@@ -38,6 +39,8 @@ public class StorageFactory {
 			return gcpStorageService;
 		else if (Platform.EMULATION.equals(platform))
 			return emulatorService;
+		else if (Platform.DIGITAL_OCEAN_SPACES.equals(platform))
+			return digitalOceanSpaceService;
 		else
 			throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED);
 	}
