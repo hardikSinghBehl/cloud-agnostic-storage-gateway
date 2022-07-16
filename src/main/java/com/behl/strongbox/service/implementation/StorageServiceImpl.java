@@ -74,10 +74,4 @@ public class StorageServiceImpl implements StorageService {
 				"PRESIGNED-URL FUNCTIONALITY IS ONLY APPLICABLE FOR AWS S3 FOR NOW : {}");
 	}
 
-	@Override
-	public Map<String, Object> retrieveMetaData(@NonNull UUID referenceId) {
-		final var fileDetail = fileDetailService.getById(referenceId);
-		return fileDetail.getCustomMetadata();
-	}
-
 }

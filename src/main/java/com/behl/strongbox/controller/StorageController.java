@@ -22,6 +22,7 @@ import com.behl.strongbox.constant.Platform;
 import com.behl.strongbox.dto.FileRetrievalDto;
 import com.behl.strongbox.dto.FileStorageSuccessDto;
 import com.behl.strongbox.dto.PresignedUrlResponseDto;
+import com.behl.strongbox.service.FileDetailService;
 import com.behl.strongbox.service.StorageService;
 import com.behl.strongbox.utility.JsonUtil;
 import com.behl.strongbox.utility.PlatformUtility;
@@ -38,6 +39,7 @@ import lombok.RequiredArgsConstructor;
 public class StorageController {
 
 	private final StorageService storageService;
+	private final FileDetailService fileDetailService;
 	private final PlatformUtility platformUtility;
 
 	@CheckIfAuthorizedUser
@@ -84,7 +86,7 @@ public class StorageController {
 	public ResponseEntity<?> retrieveCustomMetaData(
 			@PathVariable(required = true, name = "referenceId") final UUID referenceId,
 			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
-		return ResponseEntity.ok(storageService.retrieveMetaData(referenceId));
+		return ResponseEntity.ok(fileDetailService.retrieveMetaDataById(referenceId));
 	}
 
 	@GetMapping(value = "/preview/{referenceId}")

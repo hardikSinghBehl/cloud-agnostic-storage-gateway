@@ -23,6 +23,4 @@ public interface StorageService {
 
 	PresignedUrlResponseDto generatePresignedUrl(@NonNull UUID keyName);
 
-	Map<String, Object> retrieveMetaData(@NonNull UUID referenceId);
-
 }
