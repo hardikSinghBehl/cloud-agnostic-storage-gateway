@@ -7,6 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -101,6 +102,21 @@ public class StorageController {
 			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
 		final var storageService = storageFactory.get(referenceId);
 		return ResponseEntity.ok(storageService.generatePresignedUrl(referenceId));
+	}
+
+	@CheckIfAuthorizedUser
+	@DeleteMapping(value = "/{referenceId}")
+	@Operation(summary = "Deletes file corresponding to referenceId", description = "Endpoint to delete objects from saved storage integration corresponding to referenceId provided")
+	@ApiResponses(value = {
+			@ApiResponse(responseCode = "200", description = "File corresponding to provided referenceId deleted successfully"),
+			@ApiResponse(responseCode = "404", description = "Invalid ReferenceId provided") })
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public ResponseEntity<HttpStatus> deleteObject(
+			@PathVariable(name = "referenceId", required = true) final UUID referenceId,
+			@Parameter(hidden = true) @RequestHeader(name = "Authorization", required = true) final String accessToken) {
+		final var storageService = storageFactory.get(referenceId);
+		storageService.delete(referenceId);
+		return ResponseEntity.noContent().build();
 	}
 
 }

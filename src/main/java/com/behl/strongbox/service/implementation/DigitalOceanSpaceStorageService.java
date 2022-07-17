@@ -21,6 +21,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.amazonaws.HttpMethod;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -112,6 +113,27 @@ public class DigitalOceanSpaceStorageService implements StorageService {
 			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "UNABLE TO GENERATE PRE-SIGNED URL",
 					exception);
 		}
+	}
+
+	@Override
+	public void delete(@NonNull UUID referenceId) {
+		final var fileDetail = fileDetailService.getById(referenceId);
+		final var keyName = fileDetail.getContentDisposition();
+		final var bucketName = digitalOceanSpacesConfigurationProperties.getBucketName();
+
+		log.info("GENERATING DELETION REQUEST FOR '{}' STORED IN DIGITAL OCEAN SPACES BUCKET {} : {}", keyName,
+				bucketName, LocalDateTime.now());
+		try {
+			final var deleteObjectRequest = new DeleteObjectRequest(bucketName, keyName);
+			digitalOceanSpace.deleteObject(deleteObjectRequest);
+		} catch (final SdkClientException exception) {
+			log.error("UNABLE TO DELETE '{}' FROM DIGITAL OCEAN SPACES BUCKET {} : {}", keyName, bucketName,
+					LocalDateTime.now(), exception);
+			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "UNABLE TO DELETE OBJECT", exception);
+		}
+		fileDetailService.delete(referenceId);
+		log.info("'{}' FROM DIGITAL OCEAN SPACES BUCKET {} DELETED SUCCESSFULLY : {}", keyName, bucketName,
+				LocalDateTime.now());
 	}
 
 }

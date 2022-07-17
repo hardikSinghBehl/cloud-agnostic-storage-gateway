@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
@@ -86,6 +87,26 @@ public class WasabiStorageService implements StorageService {
 	public PresignedUrlResponseDto generatePresignedUrl(@NonNull UUID referenceId) {
 		throw new ResponseStatusException(HttpStatus.NOT_IMPLEMENTED,
 				"FUNCTIONALITY NOT AVAILABLE CURRENTLY FOR WASABI", new NotImplementedException());
+	}
+
+	@Override
+	public void delete(@NonNull UUID referenceId) {
+		final var fileDetail = fileDetailService.getById(referenceId);
+		final var keyName = fileDetail.getContentDisposition();
+		final var bucketName = wasabiConfigurationProperties.getBucketName();
+
+		log.info("GENERATING DELETION REQUEST FOR '{}' STORED IN WASABI BUCKET {} : {}", keyName, bucketName,
+				LocalDateTime.now());
+		try {
+			final var deleteObjectRequest = new DeleteObjectRequest(bucketName, keyName);
+			wasabiClient.deleteObject(deleteObjectRequest);
+		} catch (final SdkClientException exception) {
+			log.error("UNABLE TO DELETE '{}' FROM WASABI BUCKET {} : {}", keyName, bucketName, LocalDateTime.now(),
+					exception);
+			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "UNABLE TO DELETE OBJECT", exception);
+		}
+		fileDetailService.delete(referenceId);
+		log.info("'{}' FROM WASABI BUCKET {} DELETED SUCCESSFULLY : {}", keyName, bucketName, LocalDateTime.now());
 	}
 
 }

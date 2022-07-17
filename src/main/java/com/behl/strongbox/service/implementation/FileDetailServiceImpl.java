@@ -64,4 +64,9 @@ public class FileDetailServiceImpl implements FileDetailService {
 		return getById(referenceId).getCustomMetadata();
 	}
 
+	@Override
+	public void delete(@NonNull UUID referenceId) {
+		fileDetailRepository.deleteById(referenceId);
+	}
+
 }

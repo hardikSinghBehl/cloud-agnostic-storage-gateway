@@ -89,4 +89,25 @@ public class GcpStorageService implements StorageService {
 				new NotImplementedException());
 	}
 
+	@Override
+	public void delete(@NonNull UUID referenceId) {
+		final var fileDetail = fileDetailService.getById(referenceId);
+		final String bucketName = gcpStorageConfigurationProperties.getBucketName();
+
+		log.info("GENERATING DELETION REQUEST FOR '{}' STORED IN GCP  BUCKET {} : {}",
+				fileDetail.getContentDisposition(), bucketName, LocalDateTime.now());
+		try {
+			var deletionOperationStatus = gcpStorage.delete(BlobId.of(bucketName, fileDetail.getContentDisposition()));
+			if (Boolean.FALSE.equals(deletionOperationStatus))
+				throw new StorageException(412, "UNABLE TO DELETE OBJECT");
+		} catch (final StorageException exception) {
+			log.error("UNABLE TO DELETE '{}' FROM GCP  BUCKET {} : {}", fileDetail.getContentDisposition(), bucketName,
+					LocalDateTime.now(), exception);
+			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "UNABLE TO DELETE OBJECT", exception);
+		}
+		fileDetailService.delete(referenceId);
+		log.info("'{}' FROM GCP BUCKET {} DELETED SUCCESSFULLY : {}", fileDetail.getContentDisposition(), bucketName,
+				LocalDateTime.now());
+	}
+
 }

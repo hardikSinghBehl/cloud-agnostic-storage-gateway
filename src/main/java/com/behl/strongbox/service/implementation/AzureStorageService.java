@@ -76,4 +76,24 @@ public class AzureStorageService implements StorageService {
 				new NotImplementedException());
 	}
 
+	@Override
+	public void delete(@NonNull UUID referenceId) {
+		final var fileDetail = fileDetailService.getById(referenceId);
+
+		log.info("Generating Deletion Request for '{}' stored in Azure Container '{}' : {}",
+				fileDetail.getContentDisposition(), blobContainerClient.getBlobContainerName(), LocalDateTime.now());
+		var blobClient = blobContainerClient.getBlobClient(fileDetail.getContentDisposition());
+
+		var deletionOperationStatus = blobClient.deleteIfExists();
+
+		if (Boolean.FALSE.equals(deletionOperationStatus)) {
+			log.error("UNABLE TO DELETE '{}' FROM AZURE BLOB CONTAINER {} : {}", fileDetail.getContentDisposition(),
+					azureConfigurationProperties.getContainer(), LocalDateTime.now());
+			throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "UNABLE TO DELETE OBJECT");
+		}
+		fileDetailService.delete(referenceId);
+		log.info("'{}' FROM AZURE CONTAINER {} DELETED SUCCESSFULLY : {}", fileDetail.getContentDisposition(),
+				azureConfigurationProperties.getContainer(), LocalDateTime.now());
+	}
+
 }
