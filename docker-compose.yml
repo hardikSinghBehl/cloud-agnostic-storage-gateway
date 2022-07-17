@@ -29,6 +29,9 @@ services:
       - mongo_db
       - s3-ninja
     environment:
+      # Active Profile
+      ACTIVE_PROFILE: dev
+      # Docker Services
       MONGODB_URI: mongodb://mongo_db/strongbox
       S3_NINJA_ENDPOINT: http://s3-ninja:9000
       # AWS Configuration : update the initial boolean value to true when configuring
@@ -67,6 +70,9 @@ services:
       S3_NINJA_SECRET_KEY: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
       S3_NINJA_ENDPOINT: http://s3-ninja:9000
       S3_NINJA_BUCKET_NAME: cloud-agnostic-storage-poc
+      # AWS KMS Configuration
+      KMS_KEY_ID: KMS-Key-ID-Goes-Here
+      KMS_KEY_REGION: AWS-Region-corresponding-to-configured-Key-ID
     networks:
       - cloud-agnostic-storage-poc-network
 
