@@ -21,4 +21,6 @@ public interface FileDetailService {
 
 	Map<String, Object> retrieveMetaDataById(@NonNull UUID referenceId);
 
+	void delete(@NonNull UUID referenceId);
+
 }

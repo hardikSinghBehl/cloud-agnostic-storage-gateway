@@ -21,4 +21,6 @@ public interface StorageService {
 
 	PresignedUrlResponseDto generatePresignedUrl(@NonNull UUID referenceId);
 
+	void delete(@NonNull UUID referenceId);
+
 }
