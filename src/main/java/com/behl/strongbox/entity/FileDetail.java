@@ -34,6 +34,15 @@ public class FileDetail implements Serializable {
 	@Field(name = "bucket_name")
 	private String bucketName;
 
+	/**
+	 * Contains the prefix + random_name corresponding to saved file. The file will
+	 * be retrieved using the content_disposition field. But saved_key_file will be
+	 * used to interact with the storage service integrations
+	 */
+	@NotNull
+	@Field(name = "saved_key_file")
+	private String savedFileKey;
+
 	@NotNull
 	@Field(name = "content_disposition")
 	private String contentDisposition;
