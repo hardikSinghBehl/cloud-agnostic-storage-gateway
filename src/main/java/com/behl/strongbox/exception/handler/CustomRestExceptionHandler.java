@@ -34,8 +34,9 @@ public class CustomRestExceptionHandler extends ResponseEntityExceptionHandler {
 	public ResponseEntity<?> responseStatusExceptionHandler(final ResponseStatusException exception) {
 		log.error("Exception {} thrown: {}", exception.getClass().getName(), LocalDateTime.now(), exception);
 		return ResponseEntity.status(exception.getStatus())
-				.body(ExceptionResponseDto.builder().status(exception.getRawStatusCode()).message(exception.getReason())
-						.description(exception.getMessage()).timestamp(LocalDateTime.now()).build());
+				.body(ExceptionResponseDto.builder().status(exception.getStatus().value())
+						.message(exception.getReason()).description(exception.getMessage())
+						.timestamp(LocalDateTime.now()).build());
 	}
 
 	@ResponseBody

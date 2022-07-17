@@ -1,0 +1,4 @@
+aws:
+    kms:
+        keyId: ${KMS_KEY_ID:<Kms-Key-ID-Goes-Here>}
+        region: ${KMS_KEY_REGION:<AWS-Region-corresponding-to-configured-Key-ID>}
