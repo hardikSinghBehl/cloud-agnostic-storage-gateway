@@ -11,20 +11,18 @@ import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.behl.strongbox.configuration.properties.AzureConfigurationProperties;
 
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Configuration
-@RequiredArgsConstructor
 @EnableConfigurationProperties(value = AzureConfigurationProperties.class)
 public class AzureStorageConfiguration {
 
-	private final AzureConfigurationProperties azureConfigurationProperties;
-
 	@Bean
 	@Primary
-	public BlobContainerClient blobContainerClient() {
+	public BlobContainerClient blobContainerClient(final AzureConfigurationProperties azureConfigurationProperties) {
 		if (Boolean.TRUE.equals(azureConfigurationProperties.getEnabled())) {
-			BlobServiceClient blobServiceClient = null;
+			BlobServiceClient blobServiceClient;
 			if (StringUtils.isNullOrEmpty(azureConfigurationProperties.getConnectionString())) {
 				blobServiceClient = new BlobServiceClientBuilder().sasToken(azureConfigurationProperties.getSasToken())
 						.endpoint(azureConfigurationProperties.getSasUrl()).buildClient();
@@ -32,8 +30,10 @@ public class AzureStorageConfiguration {
 				blobServiceClient = new BlobServiceClientBuilder()
 						.connectionString(azureConfigurationProperties.getConnectionString()).buildClient();
 			}
+			log.info("Azure Blob Storage Integration Configured Successfully");
 			return blobServiceClient.getBlobContainerClient(azureConfigurationProperties.getContainer());
 		}
+		log.warn("Azure Blob Storage Integration Not Configured");
 		return null;
 	}
 

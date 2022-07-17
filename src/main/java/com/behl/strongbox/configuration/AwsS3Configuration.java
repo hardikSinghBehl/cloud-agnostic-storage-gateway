@@ -15,20 +15,17 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.util.StringUtils;
 import com.behl.strongbox.configuration.properties.AwsConfigurationProperties;
 
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-@AllArgsConstructor
 @EnableConfigurationProperties(value = { AwsConfigurationProperties.class })
 public class AwsS3Configuration {
 
-	private final AwsConfigurationProperties awsConfigurationProperties;
-
 	@Primary
 	@Bean("amazonS3")
-	public AmazonS3 amazonS3() {
+	public AmazonS3 amazonS3(final AwsConfigurationProperties awsConfigurationProperties) {
+		AmazonS3 amazonS3 = null;
 		if (Boolean.TRUE.equals(awsConfigurationProperties.getEnabled())) {
 			if (!StringUtils.isNullOrEmpty(awsConfigurationProperties.getAccessKey())
 					&& !StringUtils.isNullOrEmpty(awsConfigurationProperties.getSecretAccessKey())
@@ -36,15 +33,18 @@ public class AwsS3Configuration {
 				validateRegion(awsConfigurationProperties.getS3().getRegion());
 				AWSCredentials awsCredentials = new BasicAWSCredentials(awsConfigurationProperties.getAccessKey(),
 						awsConfigurationProperties.getSecretAccessKey());
-				return AmazonS3ClientBuilder.standard()
+				amazonS3 = AmazonS3ClientBuilder.standard()
 						.withRegion(Regions.fromName(awsConfigurationProperties.getS3().getRegion()))
 						.withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
 			} else {
-				return AmazonS3ClientBuilder.standard().withRegion(Regions.getCurrentRegion().getName())
+				amazonS3 = AmazonS3ClientBuilder.standard().withRegion(Regions.getCurrentRegion().getName())
 						.withCredentials(new DefaultAWSCredentialsProviderChain()).build();
 			}
+			log.info("AWS S3 Storage Integration Configured Successfully");
+			return amazonS3;
 		}
-		return null;
+		log.warn("AWS S3 Storage Integration Not Configured");
+		return amazonS3;
 	}
 
 	private void validateRegion(final String region) {

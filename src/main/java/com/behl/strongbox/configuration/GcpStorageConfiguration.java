@@ -16,33 +16,31 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageOptions;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-@RequiredArgsConstructor
 @EnableConfigurationProperties(value = GcpStorageConfigurationProperties.class)
 public class GcpStorageConfiguration {
 
-	private final GcpStorageConfigurationProperties gcpStorageConfigurationProperties;
-
 	@Bean
-	public Storage gcpStorage() {
+	public Storage gcpStorage(final GcpStorageConfigurationProperties gcpStorageConfigurationProperties) {
 		if (BooleanUtils.isTrue(gcpStorageConfigurationProperties.getEnabled())
 				&& !StringUtils.isNullOrEmpty(gcpStorageConfigurationProperties.getAuthenticationKeyPath())
 				&& !StringUtils.isNullOrEmpty(gcpStorageConfigurationProperties.getProjectId())) {
 			try {
 				Credentials credentials = GoogleCredentials
 						.fromStream(new FileInputStream(gcpStorageConfigurationProperties.getAuthenticationKeyPath()));
-				return StorageOptions.newBuilder().setCredentials(credentials)
+				var gcpStorage = StorageOptions.newBuilder().setCredentials(credentials)
 						.setProjectId(gcpStorageConfigurationProperties.getProjectId()).build().getService();
+				log.info("GCP Storage Integration Configured Successfully");
+				return gcpStorage;
 			} catch (final IOException exception) {
 				log.error("Unable to create GCP Storage bean due to invalid configuration : {}", LocalDateTime.now(),
 						exception);
 			}
 		}
-		log.info("GCP Storage Integration Not Configured");
+		log.warn("GCP Storage Integration Not Configured");
 		return null;
 	}
 

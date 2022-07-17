@@ -11,33 +11,32 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.behl.strongbox.configuration.properties.WasabiConfigurationProperties;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Configuration
-@RequiredArgsConstructor
 @EnableConfigurationProperties(value = WasabiConfigurationProperties.class)
 public class WasabiConfiguration {
 
-	private final WasabiConfigurationProperties wasabiConfigurationProperties;
 	/**
 	 * Wasabi Endpoint remains static irrespective of region and client being used,
-	 * hence declaring it as a static class variable
+	 * hence declared as a static class variable
 	 */
 	private static final String WASABI_ENDPOINT = "s3.wasabisys.com";
 
 	@Bean("wasabiClient")
-	public AmazonS3 wasabiClient() {
+	public AmazonS3 wasabiClient(final WasabiConfigurationProperties wasabiConfigurationProperties) {
 		if (Boolean.TRUE.equals(wasabiConfigurationProperties.getEnabled())) {
 			var endpointConfiguration = new AwsClientBuilder.EndpointConfiguration(WASABI_ENDPOINT,
 					wasabiConfigurationProperties.getRegion());
 			var awsCredentials = new BasicAWSCredentials(wasabiConfigurationProperties.getAccessKey(),
 					wasabiConfigurationProperties.getSecretKey());
-			return AmazonS3ClientBuilder.standard().withEndpointConfiguration(endpointConfiguration)
+			var wasabiClient = AmazonS3ClientBuilder.standard().withEndpointConfiguration(endpointConfiguration)
 					.withCredentials(new AWSStaticCredentialsProvider(awsCredentials)).build();
+			log.info("Wasabi Storage Integration Configured Successfully");
+			return wasabiClient;
 		}
-		log.info("Wasabi Storage Integration Not Configured");
+		log.warn("Wasabi Storage Integration Not Configured");
 		return null;
 	}
 }
